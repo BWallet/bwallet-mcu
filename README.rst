@@ -1,0 +1,66 @@
+BWalletFirmware
+===============
+本项目基于https://github.com/trezor/trezor-mcu/
+
+构建说明: 
+系统环境：ubuntu:14.04 32bit
+
+1、构建BWallet 编译环境
+$apt-get update
+$sudo apt-get install -y build-essential  git  python python-pip libssl-dev
+$pip install ecdsa
+$wget https://launchpadlibrarian.net/186124160/gcc-arm-none-eabi-4_8-2014q3-20140805-linux.tar.bz2
+$tar vxf gcc-arm-none-eabi-4_8-2014q3-20140805-linux.tar.bz2
+$export PATH=$PATH:$(HOME)/gcc-arm-none-eabi-4_8-2014q3/bin
+终端上能运行arm-none-eabi-gcc 表示编译环境构建完成
+
+2、下载stm32所用的libopencm3 依赖库及BWallet项目到同一目录
+$git clone https://github.com/BWallet/libopencm3.git
+$git clone https://github.com/BWallet/bwallet-mcu.git
+
+3、编译库
+$cd  libopencm3
+$make
+
+4、编译bootloader、firmware
+$cd bwallet-mcu/
+$make
+$cd  bootloader 
+$make
+得到bootloader.bin二进制文件
+$cd bwallet-mcu/firmware
+$make
+得到bwallet.bin 二进制文件
+
+5、自已手动发布一个非官方firmware固件,进入firmware目录
+$make release
+其中fingerprint：xxxxxxx为编译firmware二进制文件的hash值
+得到一个bwallet-x.x.x.bin.hex的十六进制文件，此文件可用后面的刷新固件程序将它烧进BWallet里面
+
+7、验证firmware程序
+1）用bwallet-tools刷写固件。https://github.com/BWallet/bwallet-tools。
+2）可以在校验固件的步骤，对比编译出来的fingerprint值是否与升级后的一致，也可对比相关值与官方更新所得到的值是否一致。
+
+8、验证bootloader
+   bootloader验证说明：由于bootloader在代码中指定的范围是32KB（32768byte），因此代码中整个验证是对整个bootloader区域进行hash后再次进行hash的所得值，因此bootloader的验证需要用官方的工具才能验证完成，其步骤如下：
+1）进入verify目录 
+   $make 
+   得到verify的工具，此工具也可验证firmware的hash值，具体使用说明请运行bdx$./verify --help
+2）运行工具进行验证
+   $./verify  -b  ../bootloader/bootloader.bin
+   然后得到hash值。可与官方所提供的hash值提供对比，是否一致。
+
+注意：验证bootloader与firmware的hash值时，编译的版本一定要与所验证的版本一致。
+
+目前最新官方的bootloader版本与firmware版本如下：
+bootloader   版本号：1.3.2
+hash值:116c4823a6ac2c6e2fc068a27c167b5a108b912504b3c2e73ebe4270f44d1ecd
+bwallet-x.x.x.bin.hex 版本号：1.3.0
+hash值:
+
+
+
+
+
+
+

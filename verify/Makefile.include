@@ -1,0 +1,26 @@
+TOP_DIR       := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+CC      = g++
+
+OPTFLAGS  = -Os -g
+
+CFLAGS   += $(OPTFLAGS) \
+            -W \
+            -Wall \
+		    -I$(TOP_DIR)
+
+CLIBS 	  = -lcrypto 
+
+all: $(NAME)
+
+$(NAME): $(OBJS)
+	$(CC) -o $(NAME) $(OBJS) $(CFLAGS) $(CLIBS)
+
+%.o: %.cpp Makefile
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+%.small.o: %.cpp Makefile
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+clean:
+	rm -f $(OBJS) $(NAME)
