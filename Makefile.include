@@ -43,8 +43,8 @@ CFLAGS   += $(OPTFLAGS) \
             -I$(TOOLCHAIN_DIR)/include \
             -I$(TOP_DIR) \
             -I$(TOP_DIR)/gen \
-            -I$(TOP_DIR)/trezor-crypto \
-            -I$(TOP_DIR)/trezor-qrenc
+            -I$(TOP_DIR)/bwallet-crypto \
+            -I$(TOP_DIR)/bwallet-qrenc
 
 ifdef APPVER
 CFLAGS   += -DAPPVER=$(APPVER)

@@ -18,24 +18,24 @@ OBJS += signing.o
 
 OBJS += debug.o
 
-OBJS += ../trezor-crypto/bignum.o
-OBJS += ../trezor-crypto/ecdsa.o
-OBJS += ../trezor-crypto/secp256k1.o
-OBJS += ../trezor-crypto/hmac.o
-OBJS += ../trezor-crypto/bip32.o
-OBJS += ../trezor-crypto/bip39.o
-OBJS += ../trezor-crypto/pbkdf2.o
-OBJS += ../trezor-crypto/base58.o
+OBJS += ../bwallet-crypto/bignum.o
+OBJS += ../bwallet-crypto/ecdsa.o
+OBJS += ../bwallet-crypto/secp256k1.o
+OBJS += ../bwallet-crypto/hmac.o
+OBJS += ../bwallet-crypto/bip32.o
+OBJS += ../bwallet-crypto/bip39.o
+OBJS += ../bwallet-crypto/pbkdf2.o
+OBJS += ../bwallet-crypto/base58.o
 
-OBJS += ../trezor-crypto/ripemd160.o
-OBJS += ../trezor-crypto/sha2.o
+OBJS += ../bwallet-crypto/ripemd160.o
+OBJS += ../bwallet-crypto/sha2.o
 
-OBJS += ../trezor-crypto/aescrypt.o
-OBJS += ../trezor-crypto/aeskey.o
-OBJS += ../trezor-crypto/aestab.o
-OBJS += ../trezor-crypto/aes_modes.o
+OBJS += ../bwallet-crypto/aescrypt.o
+OBJS += ../bwallet-crypto/aeskey.o
+OBJS += ../bwallet-crypto/aestab.o
+OBJS += ../bwallet-crypto/aes_modes.o
 
-OBJS += ../trezor-qrenc/qr_encode.o
+OBJS += ../bwallet-qrenc/qr_encode.o
 
 OBJS += protob/pb_decode.o
 OBJS += protob/pb_encode.o
