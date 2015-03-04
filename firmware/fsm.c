@@ -91,7 +91,7 @@ HDNode *fsm_getRootNode(void)
 	return &node;
 }
 
-void fsm_deriveKey(HDNode *node, uint32_t *address_n, size_t address_n_count)
+int fsm_deriveKey(HDNode *node, uint32_t *address_n, size_t address_n_count)
 {
 	size_t i;
 	if (address_n_count > 3) {
@@ -105,7 +105,11 @@ void fsm_deriveKey(HDNode *node, uint32_t *address_n, size_t address_n_count)
 		}
 	}
 	for (i = 0; i < address_n_count; i++) {
-		hdnode_private_ckd(node, address_n[i]);
+		if (hdnode_private_ckd(node, address_n[i]) == 0) {
+			fsm_sendFailure(FailureType_Failure_Other, "Failed to derive private key");
+			layoutHome();
+			return 0;
+		}   
 		if (address_n_count > 3) {
 			switch (storage_getLang()) {
 				case CHINESE:
@@ -117,6 +121,7 @@ void fsm_deriveKey(HDNode *node, uint32_t *address_n, size_t address_n_count)
 			}
 		}
 	}
+	 return 1;
 }
 
 void fsm_msgInitialize(Initialize *msg)
@@ -317,7 +322,7 @@ void fsm_msgGetPublicKey(GetPublicKey *msg)
 	HDNode *node = fsm_getRootNode();
 	if (!node) return;
 
-	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
+	if(fsm_deriveKey(node, msg->address_n, msg->address_n_count) == 0) return;
 
 	resp->node.depth = node->depth;
 	resp->node.fingerprint = node->fingerprint;
@@ -451,7 +456,7 @@ void fsm_msgCipherKeyValue(CipherKeyValue *msg)
 	}
 	HDNode *node = fsm_getRootNode();
 	if (!node) return;
-	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
+	if(fsm_deriveKey(node, msg->address_n, msg->address_n_count) == 0) return;
 
 	bool encrypt = msg->has_encrypt && msg->encrypt;
 	bool ask_on_encrypt = msg->has_ask_on_encrypt && msg->ask_on_encrypt;
@@ -580,7 +585,7 @@ void fsm_msgGetAddress(GetAddress *msg)
 		return;
 	}
 
-	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
+	if(fsm_deriveKey(node, msg->address_n, msg->address_n_count) == 0) return;
 
 	if (msg->has_multisig) {
 		if (cryptoMultisigPubkeyIndex(&(msg->multisig), node->public_key) < 0) {
@@ -648,7 +653,7 @@ void fsm_msgSignMessage(SignMessage *msg)
 		return;
 	}
 
-	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
+	if(fsm_deriveKey(node, msg->address_n, msg->address_n_count) == 0) return;
 
 	switch (storage_getLang()) {
 		case CHINESE:
@@ -737,7 +742,7 @@ void fsm_msgEncryptMessage(EncryptMessage *msg)
 		}
 		node = fsm_getRootNode();
 		if (!node) return;
-		fsm_deriveKey(node, msg->address_n, msg->address_n_count);
+		if(fsm_deriveKey(node, msg->address_n, msg->address_n_count) == 0) return;
 		hdnode_fill_public_key(node);
 		ecdsa_get_address_raw(node->public_key, coin->address_type, address_raw);
 	}
@@ -787,7 +792,7 @@ void fsm_msgDecryptMessage(DecryptMessage *msg)
 	}
 	HDNode *node = fsm_getRootNode();
 	if (!node) return;
-	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
+	if(fsm_deriveKey(node, msg->address_n, msg->address_n_count) == 0) return;
 
 	layoutProgressSwipe("Decrypting", 0, 0);
 	RESP_INIT(DecryptedMessage);

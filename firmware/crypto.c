@@ -255,11 +255,16 @@ int cryptoMessageDecrypt(curve_point *nonce, uint8_t *payload, pb_size_t payload
 
 uint8_t *cryptoHDNodePathToPubkey(const HDNodePathType *hdnodepath)
 {
+	if (!hdnodepath->node.has_public_key || hdnodepath->node.public_key.size != 33) return 0;
 	static HDNode node;
-	hdnode_from_xpub(hdnodepath->node.depth, hdnodepath->node.fingerprint, hdnodepath->node.child_num, hdnodepath->node.chain_code.bytes, hdnodepath->node.public_key.bytes, &node);
+	if (hdnode_from_xpub(hdnodepath->node.depth, hdnodepath->node.fingerprint, hdnodepath->node.child_num, hdnodepath->node.chain_code.bytes, hdnodepath->node.public_key.bytes, &node) == 0) {
+		return 0;
+	}
 	uint32_t i;
 	for (i = 0; i < hdnodepath->address_n_count; i++) {
-		hdnode_public_ckd(&node, hdnodepath->address_n[i]);
+		if (hdnode_public_ckd(&node, hdnodepath->address_n[i]) == 0) {
+			return 0;
+		};
 	}
 	return node.public_key;
 }
@@ -268,9 +273,51 @@ int cryptoMultisigPubkeyIndex(const MultisigRedeemScriptType *multisig, const ui
 {
 	int i;
 	for (i = 0; i < multisig->pubkeys_count; i++) {
-		if (memcmp(cryptoHDNodePathToPubkey(&(multisig->pubkeys[i])), pubkey, 33) == 0) {
+		const uint8_t *node_pubkey = cryptoHDNodePathToPubkey(&(multisig->pubkeys[i]));
+		if (node_pubkey && memcmp(node_pubkey, pubkey, 33) == 0) {
 			return i;
 		}
 	}
 	return -1;
+}
+
+int cryptoMultisigFingerprint(const MultisigRedeemScriptType *multisig, uint8_t *hash)
+{
+	const uint32_t n = multisig->pubkeys_count;
+	const int max_pubkeys = pb_arraysize(MultisigRedeemScriptType, pubkeys);
+	uint8_t order[max_pubkeys], swap;
+	uint32_t i, j;
+	const HDNodeType *a, *b;
+	// check sanity
+	for (i = 0; i < n; i++) {
+		order[i] = i;
+		a = &(multisig->pubkeys[i].node);
+		if (!a->has_public_key || a->public_key.size != 33) return 0;
+		if (a->chain_code.size != 32) return 0;
+	}
+	// (bubble) sort according to pubkey
+	for (i = 0; i < n; i++) {
+		for (j = i; j < n; j++) {
+			a = &(multisig->pubkeys[order[i]].node);
+			b = &(multisig->pubkeys[order[j]].node);
+			if (memcmp(a->public_key.bytes, b->public_key.bytes, 33) > 0) {
+				swap = order[i];
+				order[i] = order[j];
+				order[j] = swap;
+			}
+		}
+	}
+	// hash sorted nodes
+	SHA256_CTX ctx;
+	sha256_Init(&ctx);
+	for (i = 0; i < n; i++) {
+		a = &(multisig->pubkeys[order[i]].node);
+		sha256_Update(&ctx, (const uint8_t *)a->depth, sizeof(uint32_t));
+		sha256_Update(&ctx, (const uint8_t *)a->fingerprint, sizeof(uint32_t));
+		sha256_Update(&ctx, (const uint8_t *)a->child_num, sizeof(uint32_t));
+		sha256_Update(&ctx, a->chain_code.bytes, 32);
+		sha256_Update(&ctx, a->public_key.bytes, 33);
+	}
+	sha256_Final(hash, &ctx);
+	return 1;
 }

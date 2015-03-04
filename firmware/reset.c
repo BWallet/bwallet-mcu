@@ -106,7 +106,7 @@ void reset_entropy(const uint8_t *ext_entropy, uint32_t len)
 				i++; j++;
 			}
 			current_word[j] = 0; if (storage.mnemonic[i] != 0) i++;
-			char desc[] = "##th word";
+			char desc[] = "##th word is";
 			char zhunitdesc[] = "第# #个";
 			char zhdesc[] = "第# ## #个";
 			if(storage_getLang() == CHINESE) {
