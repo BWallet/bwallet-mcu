@@ -45,6 +45,7 @@
 #include "crypto.h"
 #include "base58.h"
 #include "bip39.h"
+#include "ripemd160.h"
 
 // message methods
 
@@ -572,7 +573,24 @@ void fsm_msgGetAddress(GetAddress *msg)
 
 	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
 
-	ecdsa_get_address(node->public_key, coin->address_type, resp->address);
+	if (msg->has_multisig) {
+		if (cryptoMultisigPubkeyIndex(&(msg->multisig), node->public_key, 33) < 0) {
+			fsm_sendFailure(FailureType_Failure_Other, "Pubkey not found in multisig script");
+			layoutHome();
+			return;
+		}   
+		uint8_t buf[32];
+		if (compile_script_multisig_hash(&(msg->multisig), buf) == 0) {
+			fsm_sendFailure(FailureType_Failure_Other, "Invalid multisig script");
+			layoutHome();
+			return;
+		}   
+		ripemd160(buf, 32, buf + 1); 
+		buf[0] = 0x05; // multisig cointype
+		base58_encode_check(buf, 21, resp->address);
+	} else {
+		ecdsa_get_address(node->public_key, coin->address_type, resp->address);
+	}
 
 	if (msg->has_show_display && msg->show_display) {
 		layoutAddress(resp->address);
@@ -585,7 +603,7 @@ void fsm_msgGetAddress(GetAddress *msg)
 
 	msg_write(MessageType_MessageType_Address, resp);
 	layoutHome();
-}
+}	
 
 void fsm_msgEntropyAck(EntropyAck *msg)
 {
@@ -688,7 +706,7 @@ void fsm_msgEncryptMessage(EncryptMessage *msg)
 		return;
 	}
 	curve_point pubkey;
-	if ((msg->pubkey.size != 33 && msg->pubkey.size != 65) || ecdsa_read_pubkey(msg->pubkey.bytes, &pubkey) == 0) {
+	if (msg->pubkey.size != 33 || ecdsa_read_pubkey(msg->pubkey.bytes, &pubkey) == 0) {
 		fsm_sendFailure(FailureType_Failure_SyntaxError, "Invalid public key provided");
 		return;
 	}

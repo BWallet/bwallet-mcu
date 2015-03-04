@@ -227,7 +227,7 @@ typedef struct _DecryptedMessage {
     char address[35];
 } DecryptedMessage;
 
-typedef PB_BYTES_ARRAY_T(65) EncryptMessage_pubkey_t;
+typedef PB_BYTES_ARRAY_T(33) EncryptMessage_pubkey_t;
 
 typedef PB_BYTES_ARRAY_T(1024) EncryptMessage_message_t;
 
@@ -312,7 +312,7 @@ typedef struct _Features {
     bool has_label;
     char label[33];
     pb_size_t coins_count;
-    CoinType coins[4];
+    CoinType coins[5];
     bool has_initialized;
     bool initialized;
     bool has_revision;
@@ -336,6 +336,8 @@ typedef struct _GetAddress {
     char coin_name[17];
     bool has_show_display;
     bool show_display;
+    bool has_multisig;
+    MultisigRedeemScriptType multisig;
 } GetAddress;
 
 typedef struct _GetEntropy {
@@ -516,7 +518,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 
 /* Initializer values for message structs */
 #define Initialize_init_default                  {0}
-#define Features_init_default                    {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
+#define Features_init_default                    {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
 #define ClearSession_init_default                {0}
 #define ApplySettings_init_default               {false, "", false, ""}
 #define ChangePin_init_default                   {false, 0}
@@ -534,7 +536,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define Entropy_init_default                     {{0, {0}}}
 #define GetPublicKey_init_default                {0, {0, 0, 0, 0, 0, 0, 0, 0}}
 #define PublicKey_init_default                   {HDNodeType_init_default, false, ""}
-#define GetAddress_init_default                  {0, {0, 0, 0, 0, 0, 0, 0, 0}, false, "Bitcoin", false, 0}
+#define GetAddress_init_default                  {0, {0, 0, 0, 0, 0, 0, 0, 0}, false, "Bitcoin", false, 0, false, MultisigRedeemScriptType_init_default}
 #define Address_init_default                     {""}
 #define WipeDevice_init_default                  {0}
 #define LoadDevice_init_default                  {false, "", false, HDNodeType_init_default, false, "", false, 0, false, "english", false, "", false, 0}
@@ -567,7 +569,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define DebugLinkStop_init_default               {0}
 #define DebugLinkLog_init_default                {false, 0, false, "", false, ""}
 #define Initialize_init_zero                     {0}
-#define Features_init_zero                       {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
+#define Features_init_zero                       {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
 #define ClearSession_init_zero                   {0}
 #define ApplySettings_init_zero                  {false, "", false, ""}
 #define ChangePin_init_zero                      {false, 0}
@@ -585,7 +587,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define Entropy_init_zero                        {{0, {0}}}
 #define GetPublicKey_init_zero                   {0, {0, 0, 0, 0, 0, 0, 0, 0}}
 #define PublicKey_init_zero                      {HDNodeType_init_zero, false, ""}
-#define GetAddress_init_zero                     {0, {0, 0, 0, 0, 0, 0, 0, 0}, false, "", false, 0}
+#define GetAddress_init_zero                     {0, {0, 0, 0, 0, 0, 0, 0, 0}, false, "", false, 0, false, MultisigRedeemScriptType_init_zero}
 #define Address_init_zero                        {""}
 #define WipeDevice_init_zero                     {0}
 #define LoadDevice_init_zero                     {false, "", false, HDNodeType_init_zero, false, "", false, 0, false, "", false, "", false, 0}
@@ -686,6 +688,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define GetAddress_address_n_tag                 1
 #define GetAddress_coin_name_tag                 2
 #define GetAddress_show_display_tag              3
+#define GetAddress_multisig_tag                  4
 #define GetEntropy_size_tag                      1
 #define GetPublicKey_address_n_tag               1
 #define LoadDevice_mnemonic_tag                  1
@@ -759,7 +762,7 @@ extern const pb_field_t GetEntropy_fields[2];
 extern const pb_field_t Entropy_fields[2];
 extern const pb_field_t GetPublicKey_fields[2];
 extern const pb_field_t PublicKey_fields[3];
-extern const pb_field_t GetAddress_fields[4];
+extern const pb_field_t GetAddress_fields[5];
 extern const pb_field_t Address_fields[2];
 extern const pb_field_t WipeDevice_fields[1];
 extern const pb_field_t LoadDevice_fields[8];
@@ -794,7 +797,7 @@ extern const pb_field_t DebugLinkLog_fields[4];
 
 /* Maximum encoded size of messages (where known) */
 #define Initialize_size                          0
-#define Features_size                            (224 + 4*CoinType_size)
+#define Features_size                            (230 + 5*CoinType_size)
 #define ClearSession_size                        0
 #define ApplySettings_size                       54
 #define ChangePin_size                           2
@@ -812,7 +815,7 @@ extern const pb_field_t DebugLinkLog_fields[4];
 #define Entropy_size                             1027
 #define GetPublicKey_size                        48
 #define PublicKey_size                           (121 + HDNodeType_size)
-#define GetAddress_size                          69
+#define GetAddress_size                          (75 + MultisigRedeemScriptType_size)
 #define Address_size                             37
 #define WipeDevice_size                          0
 #define LoadDevice_size                          (320 + HDNodeType_size)
@@ -825,7 +828,7 @@ extern const pb_field_t DebugLinkLog_fields[4];
 #define SignMessage_size                         1094
 #define VerifyMessage_size                       1131
 #define MessageSignature_size                    104
-#define EncryptMessage_size                      1163
+#define EncryptMessage_size                      1131
 #define EncryptedMessage_size                    1168
 #define DecryptMessage_size                      1216
 #define DecryptedMessage_size                    1064

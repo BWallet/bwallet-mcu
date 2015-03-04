@@ -2,7 +2,7 @@ Features.vendor				max_size:33
 Features.device_id			max_size:25
 Features.language			max_size:17
 Features.label				max_size:33
-Features.coins				max_count:4
+Features.coins				max_count:5
 Features.revision			max_size:20
 Features.bootloader_hash		max_size:32
 
@@ -58,7 +58,7 @@ VerifyMessage.message			max_size:1024
 MessageSignature.address		max_size:35
 MessageSignature.signature		max_size:65
 
-EncryptMessage.pubkey			max_size:65
+EncryptMessage.pubkey			max_size:33
 EncryptMessage.message			max_size:1024
 EncryptMessage.address_n		max_count:8
 EncryptMessage.coin_name		max_size:17

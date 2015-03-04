@@ -28,7 +28,6 @@
 #include "crypto.h"
 #include "messages.pb.h"
 
-
 uint32_t op_push(uint32_t i, uint8_t *out) {
 	if (i < 0x4C) {
 		out[0] = i & 0xFF;
@@ -137,28 +136,58 @@ uint32_t compile_script_multisig(const MultisigRedeemScriptType *multisig, uint8
 	if (!multisig->has_m) return 0;
 	uint32_t m = multisig->m;
 	uint32_t n = multisig->pubkeys_count;
-	if (m < 2 || m > 3) return 0;
-	if (n < 2 || n > 3) return 0;
+	if (m < 1 || m > 15) return 0;
+	if (n < 1 || n > 15) return 0;
 	uint32_t i, r = 0;
 	if (out) {
 		out[r] = 0x50 + m; r++;
 		for (i = 0; i < n; i++) {
-			r += op_push(multisig->pubkeys[i].size, out + r); 
+			r += op_push(multisig->pubkeys[i].size, out + r);
 			memcpy(out + r, multisig->pubkeys[i].bytes, multisig->pubkeys[i].size); r += multisig->pubkeys[i].size;
-		}   
+		}
 		out[r] = 0x50 + n; r++;
 		out[r] = 0xAE; r++; // OP_CHECKMULTISIG
 	} else {
 		r++;
+		uint8_t dummy[8];
 		for (i = 0; i < n; i++) {
-			uint8_t dummy[8];
 			r += op_push(multisig->pubkeys[i].size, dummy);
 			r += multisig->pubkeys[i].size;
-		}   
+		}
 		r++;
 		r++;
-	}   
+	}
 	return r;
+}
+
+uint32_t compile_script_multisig_hash(const MultisigRedeemScriptType *multisig, uint8_t *hash)
+{
+	if (!multisig->has_m) return 0;
+	uint32_t m = multisig->m;
+	uint32_t n = multisig->pubkeys_count;
+	if (m < 1 || m > 15) return 0;
+	if (n < 1 || n > 15) return 0;
+
+	SHA256_CTX ctx;
+	sha256_Init(&ctx);
+
+	uint8_t d, dummy[8];
+	d = 0x50 + m;
+	sha256_Update(&ctx, &d, 1);
+	uint32_t i, r;
+	for (i = 0; i < n; i++) {
+		r = op_push(multisig->pubkeys[i].size, dummy);
+		sha256_Update(&ctx, dummy, r);
+		sha256_Update(&ctx, multisig->pubkeys[i].bytes, multisig->pubkeys[i].size);
+	}
+	d = 0x50 + n;
+	sha256_Update(&ctx, &d, 1);
+	d = 0xAE;
+	sha256_Update(&ctx, &d, 1);
+
+	sha256_Final(hash, &ctx);
+
+	return 1;
 }
 
 uint32_t serialize_script_sig(const uint8_t *signature, uint32_t signature_len, const uint8_t *pubkey, uint32_t pubkey_len, uint8_t *out)
@@ -189,7 +218,6 @@ uint32_t serialize_script_multisig(const MultisigRedeemScriptType *multisig, uin
 	r += compile_script_multisig(multisig, out + r);
 	return r;
 }
-
 
 // tx methods
 
@@ -320,4 +348,3 @@ uint32_t transactionEstimateSizeKb(uint32_t inputs, uint32_t outputs)
 {
 	return (transactionEstimateSize(inputs, outputs) + 999) / 1000;
 }
-
