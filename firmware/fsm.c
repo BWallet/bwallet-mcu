@@ -505,16 +505,6 @@ bool fsm_getLang(ApplySettings *msg)
 
 void fsm_msgApplySettings(ApplySettings *msg)
 {
-	if (msg->has_label && msg->has_language) {
-		switch (storage_getLang()) {
-			case CHINESE :	
-				layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, "设置钱包名称为#:#", msg->label, "设置固件语言为#:#", fsm_getLang(msg) ? "中文" : "英语");
-				break;
-			default :
-				layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", "change label to", msg->label, "and language to", msg->language, "?");
-				break;
-		}
-	} else
 	if (msg->has_label) {
 		switch (storage_getLang()) {
 			case CHINESE : 
@@ -524,7 +514,13 @@ void fsm_msgApplySettings(ApplySettings *msg)
 				layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", "change label to", msg->label, "?", NULL, NULL);
 				break;
 		}
-	} else
+		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
+			fsm_sendFailure(FailureType_Failure_ActionCancelled, "Apply settings cancelled");
+			layoutHome();
+			return;
+		}
+	} 
+
 	if (msg->has_language) {
 		switch (storage_getLang()) {
 			case CHINESE : 
@@ -534,15 +530,25 @@ void fsm_msgApplySettings(ApplySettings *msg)
 				layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", "change language to", msg->language, "?", NULL, NULL);
 				break;
 		}
-	} else {
+		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
+			fsm_sendFailure(FailureType_Failure_ActionCancelled, "Apply settings cancelled");
+			layoutHome();
+			return;
+		}   
+	}
+
+	if (msg->has_use_passphrase) {
+		layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", msg->use_passphrase ? "enable passphrase" : "disable passphrase", "protection?", NULL, NULL, NULL);
+		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
+			fsm_sendFailure(FailureType_Failure_ActionCancelled, "Apply settings cancelled");
+			layoutHome();
+			return;
+		}   
+	}   
+	if (!msg->has_label && !msg->has_language && !msg->has_use_passphrase) {
 		fsm_sendFailure(FailureType_Failure_SyntaxError, "No setting provided");
 		return;
-	}
-	if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
-		fsm_sendFailure(FailureType_Failure_ActionCancelled, "Apply settings cancelled");
-		layoutHome();
-		return;
-	}
+	}   
 	if (!protectPin(true)) {
 		layoutHome();
 		return;
@@ -552,6 +558,9 @@ void fsm_msgApplySettings(ApplySettings *msg)
 	}
 	if (msg->has_language) {
 		storage_setLanguage(msg->language);
+	}
+	if (msg->has_use_passphrase) {
+		storage_setPassphraseProtection(msg->use_passphrase);
 	}
 	storage_commit();
 	fsm_sendSuccess("Settings applied");

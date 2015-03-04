@@ -42,6 +42,8 @@ const char *storage_getLanguage(void);
 int storage_getLang(void);
 void storage_setLanguage(const char *lang);
 
+void storage_setPassphraseProtection(bool passphrase_protection);
+
 void session_cachePassphrase(const char *passphrase);
 bool session_isPassphraseCached(void);
 
