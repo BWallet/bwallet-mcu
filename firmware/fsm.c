@@ -42,6 +42,8 @@
 #include "aes.h"
 #include "hmac.h"
 #include "serialno.h"
+#include "crypto.h"
+#include "base58.h"
 
 // message methods
 
@@ -145,7 +147,6 @@ void fsm_msgInitialize(Initialize *msg)
 	memcpy(resp->coins, coins, COINS_COUNT * sizeof(CoinType));
 	resp->has_initialized = true; resp->initialized = storage_isInitialized();
 	resp->has_imported = true; resp->imported = storage.has_imported && storage.imported;
-	resp->has_cpu_sn = true;  fill_serialno_fixed(resp->cpu_sn);
 	msg_write(MessageType_MessageType_Features, resp);
 }
 
@@ -462,19 +463,19 @@ void fsm_msgCipherKeyValue(CipherKeyValue *msg)
 
 	hmac_sha512(node->private_key, 32, data, strlen((char *)data), data);
 
-	RESP_INIT(Success);
+	RESP_INIT(CipheredKeyValue);
 	if (encrypt) {
 		aes_encrypt_ctx ctx;
 		aes_encrypt_key256(data, &ctx);
-		aes_cbc_encrypt(msg->value.bytes, resp->payload.bytes, msg->value.size, data + 32, &ctx);
+		aes_cbc_encrypt(msg->value.bytes, resp->value.bytes, msg->value.size, data + 32, &ctx);
 	} else {
 		aes_decrypt_ctx ctx;
 		aes_decrypt_key256(data, &ctx);
-		aes_cbc_decrypt(msg->value.bytes, resp->payload.bytes, msg->value.size, data + 32, &ctx);
+		aes_cbc_decrypt(msg->value.bytes, resp->value.bytes, msg->value.size, data + 32, &ctx);
 	}
-	resp->has_payload = true;
-	resp->payload.size = msg->value.size;
-	msg_write(MessageType_MessageType_Success, resp);
+	resp->has_value = true;
+	resp->value.size = msg->value.size;
+	msg_write(MessageType_MessageType_CipheredKeyValue, resp);
 	layoutHome();
 }
 
@@ -614,7 +615,9 @@ void fsm_msgSignMessage(SignMessage *msg)
 
 	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
 
-	ecdsa_get_address(node->public_key, coin->address_type, resp->address);
+	uint8_t addr_raw[21];
+	ecdsa_get_address_raw(node->public_key, coin->address_type, addr_raw);
+	base58_encode_check(addr_raw, 21, resp->address);
 	switch (storage_getLang()) {
 		case CHINESE:
 			layoutProgressSwipe("签名#.##.##.#", 0, 0);
@@ -623,7 +626,7 @@ void fsm_msgSignMessage(SignMessage *msg)
 			layoutProgressSwipe("Signing", 0, 0);
 			break;
 	}
-	if (transactionMessageSign(msg->message.bytes, msg->message.size, node->private_key, resp->address, resp->signature.bytes)) {
+	if (cryptoMessageSign(msg->message.bytes, msg->message.size, node->private_key, addr_raw, resp->signature.bytes)) {
 		resp->has_address = true;
 		resp->has_signature = true;
 		resp->signature.size = 65;
@@ -636,7 +639,14 @@ void fsm_msgSignMessage(SignMessage *msg)
 
 void fsm_msgVerifyMessage(VerifyMessage *msg)
 {
-	const char *address = msg->has_address ? msg->address : 0;
+	if (!msg->has_address) {
+		fsm_sendFailure(FailureType_Failure_Other, "No address provided");
+		return;
+	}   
+	if (!msg->has_message) {
+		fsm_sendFailure(FailureType_Failure_Other, "No message provided");
+		return;
+	} 
 	switch (storage_getLang()) {
 		case CHINESE:
 			layoutProgressSwipe("验证#.##.##.#", 0, 0);
@@ -645,7 +655,11 @@ void fsm_msgVerifyMessage(VerifyMessage *msg)
 			layoutProgressSwipe("Verifying", 0, 0);
 			break;
 	}
-	if (msg->signature.size == 65 && transactionMessageVerify(msg->message.bytes, msg->message.size, msg->signature.bytes, address)) {
+	uint8_t addr_raw[21];
+	if (!ecdsa_address_decode(msg->address, addr_raw)) {
+		fsm_sendFailure(FailureType_Failure_InvalidSignature, "Invalid address");
+	}
+	if (msg->signature.size == 65 && cryptoMessageVerify(msg->message.bytes, msg->message.size, addr_raw, msg->signature.bytes) == 0) {
 		layoutVerifyMessage(msg->message.bytes, msg->message.size);
 		protectButton(ButtonRequestType_ButtonRequest_Other, true);
 		fsm_sendSuccess("Message verified");
@@ -670,33 +684,67 @@ void fsm_msgEncryptMessage(EncryptMessage *msg)
 		fsm_sendFailure(FailureType_Failure_SyntaxError, "Invalid public key provided");
 		return;
 	}
-
-	if (msg->address_n_count) {
+	bool display_only = msg->has_display_only && msg->display_only;
+	bool signing = msg->address_n_count > 0;
+	RESP_INIT(EncryptedMessage);
+	const CoinType *coin = 0;
+	HDNode *node = 0;
+	uint8_t address_raw[21];
+	if (signing) {
+		coin = coinByName(msg->coin_name);
+		if (!coin) {
+			fsm_sendFailure(FailureType_Failure_Other, "Invalid coin name");
+			return;
+		}   
 		if (!protectPin(true)) {
 			layoutHome();
 			return;
 		}
-		HDNode *node = fsm_getRootNode();
+		node = fsm_getRootNode();
 		if (!node) return;
 		fsm_deriveKey(node, msg->address_n, msg->address_n_count);
+		hdnode_fill_public_key(node);
+		ecdsa_get_address_raw(node->public_key, coin->address_type, address_raw);
 	}
-
-	// TODO
-
+	layoutEncryptMessage(msg->message.bytes, msg->message.size, signing);
+	if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
+		fsm_sendFailure(FailureType_Failure_ActionCancelled, "Encrypt message cancelled");
+		layoutHome();
+		return;
+	}
+	if (cryptoMessageEncrypt(&pubkey, msg->message.bytes, msg->message.size, display_only, 
+		resp->nonce.bytes, &(resp->nonce.size), resp->message.bytes, &(resp->message.size), 
+		resp->hmac.bytes, &(resp->hmac.size), signing ? node->private_key : 0, signing ? address_raw : 0) != 0) {
+		fsm_sendFailure(FailureType_Failure_ActionCancelled, "Error encrypting message");
+		layoutHome();
+		return;
+	}
+	resp->has_nonce = true;
+	resp->has_message = true;
+	resp->has_hmac = true;
+	msg_write(MessageType_MessageType_EncryptedMessage, resp);
 	layoutHome();
 }
 
 void fsm_msgDecryptMessage(DecryptMessage *msg)
 {
+	if (!msg->has_nonce) {
+		fsm_sendFailure(FailureType_Failure_SyntaxError, "No nonce provided");
+		return;
+	}
 	if (!msg->has_message) {
 		fsm_sendFailure(FailureType_Failure_SyntaxError, "No message provided");
 		return;
 	}
-	if (msg->message.size % 16) {
-		fsm_sendFailure(FailureType_Failure_SyntaxError, "Message length must be a multiple of 16");
+	if (!msg->has_hmac) {
+		fsm_sendFailure(FailureType_Failure_SyntaxError, "No message hmac provided");
 		return;
 	}
-
+	curve_point nonce_pubkey;
+	if (msg->nonce.size != 33 || ecdsa_read_pubkey(msg->nonce.bytes, &nonce_pubkey) == 0) {
+		fsm_sendFailure(FailureType_Failure_SyntaxError, "Invalid nonce provided");
+		return;
+	}
 	if (!protectPin(true)) {
 		layoutHome();
 		return;
@@ -705,8 +753,31 @@ void fsm_msgDecryptMessage(DecryptMessage *msg)
 	if (!node) return;
 	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
 
-	// TODO
-
+	RESP_INIT(DecryptedMessage);
+	bool display_only = false;
+	bool signing = false;
+	uint8_t address_raw[21];
+	if (cryptoMessageDecrypt(&nonce_pubkey, msg->message.bytes, msg->message.size, msg->hmac.bytes, 
+		msg->hmac.size, node->private_key, resp->message.bytes, &(resp->message.size), &display_only, &signing, address_raw) != 0) {
+		fsm_sendFailure(FailureType_Failure_ActionCancelled, "Error decrypting message");
+		layoutHome();
+		return;
+	}
+	if (signing) {
+		base58_encode_check(address_raw, 21, resp->address);
+	}
+	layoutDecryptMessage(resp->message.bytes, resp->message.size, signing ? resp->address : 0);
+	protectButton(ButtonRequestType_ButtonRequest_Other, true);
+	if (display_only) {
+		resp->has_address = false;
+		resp->has_message = false;
+		memset(resp->address, sizeof(resp->address), 0);
+		memset(&(resp->message), sizeof(resp->message), 0);
+	} else {
+		resp->has_address = signing;
+		resp->has_message = true;
+	}
+	msg_write(MessageType_MessageType_DecryptedMessage, resp);
 	layoutHome();
 }
 
@@ -737,15 +808,6 @@ void fsm_msgRecoveryDevice(RecoveryDevice *msg)
 void fsm_msgWordAck(WordAck *msg)
 {
 	recovery_word(msg->word);
-}
-
-void fsm_msgTestScreen(TestScreen *msg)
-{
-	uint32_t delay_time = msg->delay_time * 20000000;
-	layoutScreen();
-	while(delay_time--)
-		__asm__("nop");
-	layoutHome();
 }
 
 #if DEBUG_LINK

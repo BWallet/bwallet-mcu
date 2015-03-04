@@ -272,7 +272,7 @@ int main(void)
 				case 1:
 					//layoutProgress("WORKING", frame % 41 * 25, frame % 4);
 					layoutProgress("确认取", frame % 41 * 25, frame % 4);
-					pbkdf2(pass, passlen, salt, saltlen, 100, seed, 64, NULL);
+					pbkdf2_hmac_sha512(pass, passlen, salt, saltlen, 100, seed, 64, NULL);
 					usbd_ep_write_packet(usbd_dev, 0x81, seed, 64);
 					break;
 			}

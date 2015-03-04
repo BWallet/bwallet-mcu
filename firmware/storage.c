@@ -250,7 +250,7 @@ bool storage_getRootNode(HDNode *node)
 					layoutProgressSwipe("Waking up", 0, 0);
 					break;
 			}
-			pbkdf2((const uint8_t *)sessionPassphrase, strlen(sessionPassphrase), (uint8_t *)"BWALLETHD", 8, BIP39_PBKDF2_ROUNDS, secret, 64, get_root_node_callback);
+			pbkdf2_hmac_sha512((const uint8_t *)sessionPassphrase, strlen(sessionPassphrase), (uint8_t *)"BWALLETHD", 8, BIP39_PBKDF2_ROUNDS, secret, 64, get_root_node_callback);
 			aes_decrypt_ctx ctx;
 			aes_decrypt_key256(secret, &ctx);
 			aes_cbc_decrypt(sessionRootNode.chain_code, sessionRootNode.chain_code, 32, secret + 32, &ctx);
