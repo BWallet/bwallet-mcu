@@ -134,28 +134,21 @@ uint32_t compile_script_sig(uint8_t address_type, const uint8_t *pubkeyhash, uin
 uint32_t compile_script_multisig(const MultisigRedeemScriptType *multisig, uint8_t *out)
 {
 	if (!multisig->has_m) return 0;
-	uint32_t m = multisig->m;
-	uint32_t n = multisig->pubkeys_count;
+	const uint32_t m = multisig->m;
+	const uint32_t n = multisig->pubkeys_count;
 	if (m < 1 || m > 15) return 0;
 	if (n < 1 || n > 15) return 0;
 	uint32_t i, r = 0;
 	if (out) {
 		out[r] = 0x50 + m; r++;
 		for (i = 0; i < n; i++) {
-			r += op_push(multisig->pubkeys[i].size, out + r);
-			memcpy(out + r, multisig->pubkeys[i].bytes, multisig->pubkeys[i].size); r += multisig->pubkeys[i].size;
+			out[r] = 33; r++; // OP_PUSH 33
+			memcpy(out + r, cryptoHDNodePathToPubkey(&(multisig->pubkeys[i])), 33); r += 33;
 		}
 		out[r] = 0x50 + n; r++;
 		out[r] = 0xAE; r++; // OP_CHECKMULTISIG
 	} else {
-		r++;
-		uint8_t dummy[8];
-		for (i = 0; i < n; i++) {
-			r += op_push(multisig->pubkeys[i].size, dummy);
-			r += multisig->pubkeys[i].size;
-		}
-		r++;
-		r++;
+		r = 1 + 34 * n + 2;
 	}
 	return r;
 }
@@ -163,27 +156,23 @@ uint32_t compile_script_multisig(const MultisigRedeemScriptType *multisig, uint8
 uint32_t compile_script_multisig_hash(const MultisigRedeemScriptType *multisig, uint8_t *hash)
 {
 	if (!multisig->has_m) return 0;
-	uint32_t m = multisig->m;
-	uint32_t n = multisig->pubkeys_count;
+	const uint32_t m = multisig->m;
+	const uint32_t n = multisig->pubkeys_count;
 	if (m < 1 || m > 15) return 0;
 	if (n < 1 || n > 15) return 0;
 
 	SHA256_CTX ctx;
 	sha256_Init(&ctx);
 
-	uint8_t d, dummy[8];
-	d = 0x50 + m;
-	sha256_Update(&ctx, &d, 1);
-	uint32_t i, r;
+	uint8_t d;
+	d = 0x50 + m; sha256_Update(&ctx, &d, 1);
+	uint32_t i;
 	for (i = 0; i < n; i++) {
-		r = op_push(multisig->pubkeys[i].size, dummy);
-		sha256_Update(&ctx, dummy, r);
-		sha256_Update(&ctx, multisig->pubkeys[i].bytes, multisig->pubkeys[i].size);
+		d = 33; sha256_Update(&ctx, &d, 1); // OP_PUSH 33
+		sha256_Update(&ctx, cryptoHDNodePathToPubkey(&(multisig->pubkeys[i])), 33);
 	}
-	d = 0x50 + n;
-	sha256_Update(&ctx, &d, 1);
-	d = 0xAE;
-	sha256_Update(&ctx, &d, 1);
+	d = 0x50 + n; sha256_Update(&ctx, &d, 1);
+	d = 0xAE;     sha256_Update(&ctx, &d, 1);
 
 	sha256_Final(hash, &ctx);
 
