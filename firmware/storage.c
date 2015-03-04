@@ -223,13 +223,12 @@ void storage_setPassphraseProtection(bool passphrase_protection)
 
 void get_root_node_callback(uint32_t iter, uint32_t total)
 {
-	static uint8_t i;
 	switch (storage_getLang()) {
 		case CHINESE :
-			layoutProgress("唤醒中#.##.##.#", 1000 * iter / total, i++);
+			layoutProgress("唤醒中#.##.##.#", 1000 * iter / total);
 			break;
 		default :
-			layoutProgress("Waking up", 1000 * iter / total, i++);
+			layoutProgress("Waking up", 1000 * iter / total);
 			break;
 	}
 }
@@ -255,10 +254,10 @@ bool storage_getRootNode(HDNode *node)
 			uint8_t secret[64];
 			switch (storage_getLang()) {
 				case CHINESE :
-					layoutProgress("唤醒中#.##.##.#", 0, 0);
+					layoutProgressSwipe("唤醒中#.##.##.#", 0);
 					break;
 				default :
-					layoutProgressSwipe("Waking up", 0, 0);
+					layoutProgressSwipe("Waking up", 0);
 					break;
 			}
 			pbkdf2_hmac_sha512((const uint8_t *)sessionPassphrase, strlen(sessionPassphrase), (uint8_t *)"BWALLETHD", 8, BIP39_PBKDF2_ROUNDS, secret, 64, get_root_node_callback);
@@ -280,10 +279,10 @@ bool storage_getRootNode(HDNode *node)
 		uint8_t seed[64];
 		switch (storage_getLang()) {
 			case CHINESE :
-				layoutProgress("唤醒中#.##.##.#", 0, 0);
+				layoutProgressSwipe("唤醒中#.##.##.#", 0);
 				break;
 			default :
-				layoutProgressSwipe("Waking up", 0, 0);
+				layoutProgressSwipe("Waking up", 0);
 				break;
 		}
 		mnemonic_to_seed(storage.mnemonic, sessionPassphrase, seed, get_root_node_callback); // BIP-0039

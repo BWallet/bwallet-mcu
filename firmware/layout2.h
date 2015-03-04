@@ -25,7 +25,7 @@
 
 void layoutDialogSwipe(LayoutDialogIcon icon, const char *btnNo, const char *btnYes, const char *desc, const char *line1, const char *line2, const char *line3, const char *line4, const char *line5, const char *line6);
 void layoutZhDialogSwipe(LayoutDialogIcon icon, const char *btnNo, const char *btnYes, const char *desc, const char *line1, const char *line2, const char *line3, const char *line4);
-void layoutProgressSwipe(const char *desc, int permil, int gearstep);
+void layoutProgressSwipe(const char *desc, int permil);
 
 void layoutHome(void);
 void layoutScreen(void);

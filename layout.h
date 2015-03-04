@@ -21,6 +21,7 @@
 #define __LAYOUT_H__
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define ENLINE  9
 #define ZHLINE  13
@@ -36,6 +37,8 @@ typedef enum {
 
 void layoutDialog(LayoutDialogIcon icon, const char *btnNo, const char *btnYes, const char *desc, const char *line1, const char *line2, const char *line3, const char *line4, const char *line5, const char *line6);
 void layoutZhDialog(LayoutDialogIcon icon, const char *btnNo, const char *btnYes, const char *desc, const char *line1, const char *line2, const char *line3, const char *line4);
-void layoutProgress(const char *desc, int permil, int gearstep);
+void layoutProgressUpdate(bool refresh);
+void layoutProgress(const char *desc, int permil);
+
 
 #endif

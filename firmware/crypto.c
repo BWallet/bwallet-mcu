@@ -25,7 +25,7 @@
 #include "aes.h"
 #include "hmac.h"
 #include "bip32.h"
-#include "layout2.h"
+#include "layout.h"
 
 uint32_t ser_length(uint32_t len, uint8_t *out)
 {
@@ -44,6 +44,24 @@ uint32_t ser_length(uint32_t len, uint8_t *out)
 	out[2] = (len >> 8) & 0xFF;
 	out[3] = (len >> 16) & 0xFF;
 	out[4] = (len >> 24) & 0xFF;
+	return 5;
+}
+
+uint32_t ser_length_hash(SHA256_CTX *ctx, uint32_t len)
+{
+	if (len < 253) {
+		sha256_Update(ctx, (const uint8_t *)&len, 1);
+		return 1;
+	}
+	if (len < 0x10000) {
+		uint8_t d = 253;
+		sha256_Update(ctx, &d, 1);
+		sha256_Update(ctx, (const uint8_t *)&len, 2);
+		return 3;
+	}
+	uint8_t d = 254;
+	sha256_Update(ctx, &d, 1);
+	sha256_Update(ctx, (const uint8_t *)&len, 4);
 	return 5;
 }
 
@@ -261,11 +279,13 @@ uint8_t *cryptoHDNodePathToPubkey(const HDNodePathType *hdnodepath)
 	if (hdnode_from_xpub(hdnodepath->node.depth, hdnodepath->node.fingerprint, hdnodepath->node.child_num, hdnodepath->node.chain_code.bytes, hdnodepath->node.public_key.bytes, &node) == 0) {
 		return 0;
 	}
+	layoutProgressUpdate(true);
 	uint32_t i;
 	for (i = 0; i < hdnodepath->address_n_count; i++) {
 		if (hdnode_public_ckd(&node, hdnodepath->address_n[i]) == 0) {
 			return 0;
 		}
+		layoutProgressUpdate(true);
 	}
 	return node.public_key;
 }
@@ -317,5 +337,6 @@ int cryptoMultisigFingerprint(const MultisigRedeemScriptType *multisig, uint8_t 
 		sha256_Update(&ctx, ptr[i]->node.public_key.bytes, 33);
 	}
 	sha256_Final(hash, &ctx);
+	layoutProgressUpdate(true);
 	return 1;
 }

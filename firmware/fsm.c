@@ -97,10 +97,10 @@ int fsm_deriveKey(HDNode *node, uint32_t *address_n, size_t address_n_count)
 	if (address_n_count > 3) {
 		switch (storage_getLang()) {
 			case CHINESE:
-				layoutProgressSwipe("准备私钥", 0, 0);
+				layoutProgressSwipe("准备私钥", 0);
 				break;
 			default :
-				layoutProgressSwipe("Preparing keys", 0, 0);
+				layoutProgressSwipe("Preparing keys", 0);
 				break;
 		}
 	}
@@ -113,10 +113,10 @@ int fsm_deriveKey(HDNode *node, uint32_t *address_n, size_t address_n_count)
 		if (address_n_count > 3) {
 			switch (storage_getLang()) {
 				case CHINESE:
-					layoutProgress("准备私钥", 1000 * i / address_n_count, i);
+					layoutProgress("准备私钥", 1000 * i / address_n_count);
 					break;
 				default :
-					layoutProgress("Preparing keys", 1000 * i / address_n_count, i);
+					layoutProgress("Preparing keys", 1000 * i / address_n_count);
 					break;
 			}
 		}
@@ -657,10 +657,10 @@ void fsm_msgSignMessage(SignMessage *msg)
 
 	switch (storage_getLang()) {
 		case CHINESE:
-			layoutProgressSwipe("签名#.##.##.#", 0, 0);
+			layoutProgressSwipe("签名#.##.##.#", 0);
 			break;
 		default :
-			layoutProgressSwipe("Signing", 0, 0);
+			layoutProgressSwipe("Signing", 0);
 			break;
 	}
 	if (cryptoMessageSign(msg->message.bytes, msg->message.size, node->private_key, resp->signature.bytes) == 0) {
@@ -689,10 +689,10 @@ void fsm_msgVerifyMessage(VerifyMessage *msg)
 	} 
 	switch (storage_getLang()) {
 		case CHINESE:
-			layoutProgressSwipe("验证#.##.##.#", 0, 0);
+			layoutProgressSwipe("验证#.##.##.#", 0);
 			break;
 		default :
-			layoutProgressSwipe("Verifying", 0, 0);
+			layoutProgressSwipe("Verifying", 0);
 			break;
 	}
 	uint8_t addr_raw[21];
@@ -752,7 +752,7 @@ void fsm_msgEncryptMessage(EncryptMessage *msg)
 		layoutHome();
 		return;
 	}
-	layoutProgressSwipe("Encrypting", 0, 0);
+	layoutProgressSwipe("Encrypting", 0);
 	if (cryptoMessageEncrypt(&pubkey, msg->message.bytes, msg->message.size, display_only, 
 		resp->nonce.bytes, &(resp->nonce.size), resp->message.bytes, &(resp->message.size), 
 		resp->hmac.bytes, &(resp->hmac.size), signing ? node->private_key : 0, signing ? address_raw : 0) != 0) {
@@ -794,7 +794,7 @@ void fsm_msgDecryptMessage(DecryptMessage *msg)
 	if (!node) return;
 	if(fsm_deriveKey(node, msg->address_n, msg->address_n_count) == 0) return;
 
-	layoutProgressSwipe("Decrypting", 0, 0);
+	layoutProgressSwipe("Decrypting", 0);
 	RESP_INIT(DecryptedMessage);
 	bool display_only = false;
 	bool signing = false;

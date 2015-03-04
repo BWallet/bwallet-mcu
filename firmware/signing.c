@@ -52,6 +52,8 @@ static uint64_t to_spend, spending, change_spend;
 const uint32_t version = 1;
 const uint32_t lock_time = 0;
 static uint32_t progress, progress_total;
+static bool multisig_fp_set, multisig_fp_mismatch;
+static uint8_t multisig_fp[32];
 
 /*
 Workflow of streamed signing
@@ -97,6 +99,7 @@ foreach I:
 
 void send_req_1_input(void)
 {
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	idx2i = idx2o = idx3i = idx3o = 0;
 	signing_stage = STAGE_REQUEST_1_INPUT;
 	resp.has_request_type = true;
@@ -109,6 +112,7 @@ void send_req_1_input(void)
 
 void send_req_2_prev_meta(void)
 {
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	signing_stage = STAGE_REQUEST_2_PREV_META;
 	resp.has_request_type = true;
 	resp.request_type = RequestType_TXMETA;
@@ -121,6 +125,7 @@ void send_req_2_prev_meta(void)
 
 void send_req_2_prev_input(void)
 {
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	signing_stage = STAGE_REQUEST_2_PREV_INPUT;
 	resp.has_request_type = true;
 	resp.request_type = RequestType_TXINPUT;
@@ -135,6 +140,7 @@ void send_req_2_prev_input(void)
 
 void send_req_2_prev_output(void)
 {
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	signing_stage = STAGE_REQUEST_2_PREV_OUTPUT;
 	resp.has_request_type = true;
 	resp.request_type = RequestType_TXOUTPUT;
@@ -149,6 +155,7 @@ void send_req_2_prev_output(void)
 
 void send_req_3_input(void)
 {
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	signing_stage = STAGE_REQUEST_3_INPUT;
 	resp.has_request_type = true;
 	resp.request_type = RequestType_TXINPUT;
@@ -160,6 +167,7 @@ void send_req_3_input(void)
 
 void send_req_3_output(void)
 {
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	signing_stage = STAGE_REQUEST_3_OUTPUT;
 	resp.has_request_type = true;
 	resp.request_type = RequestType_TXOUTPUT;
@@ -171,6 +179,7 @@ void send_req_3_output(void)
 
 void send_req_4_output(void)
 {
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	signing_stage = STAGE_REQUEST_4_OUTPUT;
 	resp.has_request_type = true;
 	resp.request_type = RequestType_TXOUTPUT;
@@ -182,6 +191,7 @@ void send_req_4_output(void)
 
 void send_req_finished(void)
 {
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	resp.has_request_type = true;
 	resp.request_type = RequestType_TXFINISHED;
 	msg_write(MessageType_MessageType_TxRequest, &resp);
@@ -203,7 +213,10 @@ void signing_init(uint32_t _inputs_count, uint32_t _outputs_count, const CoinTyp
 
 	signing = true;
 	progress = 1;
-	progress_total = inputs_count * (1 + inputs_count + outputs_count) + outputs_count;
+	progress_total = inputs_count * (1 + inputs_count + outputs_count) + outputs_count + 1;
+
+	multisig_fp_set = false;
+	multisig_fp_mismatch = false;
 
 	tx_init(&to, inputs_count, outputs_count, version, lock_time, false);
 
@@ -218,22 +231,14 @@ void signing_txack(TransactionType *tx)
 		return;
 	}
 
+	layoutProgress("Signing transaction", 1000 * progress / progress_total);
 	int co;
-	static bool multisig_fp_set, multisig_fp_mismatch;
-	static uint8_t multisig_fp[32];
 
 	memset(&resp, 0, sizeof(TxRequest));
 
 	switch (signing_stage) {
 		case STAGE_REQUEST_1_INPUT:
-			switch (storage_getLang()) {
-				case CHINESE :	
-					layoutProgress("准备#.##.##.#", 1000 * progress / progress_total, progress); progress++;
-					break;
-				default :
-					layoutProgress("Preparing", 1000 * progress / progress_total, progress); progress++;
-					break;
-			}
+			progress++;
 			memcpy(&input, tx->inputs, sizeof(TxInputType));
 			multisig_fp_set = false;
 			multisig_fp_mismatch = false;
@@ -244,7 +249,7 @@ void signing_txack(TransactionType *tx)
 			send_req_2_prev_input();
 			return;
 		case STAGE_REQUEST_2_PREV_INPUT:
-			if (!tx_hash_input(&tp, tx->inputs)) {
+			if (!tx_serialize_input_hash(&tp, tx->inputs)) {
 				fsm_sendFailure(FailureType_Failure_Other, "Failed to serialize input");
 				signing_abort();
 				return;
@@ -257,7 +262,7 @@ void signing_txack(TransactionType *tx)
 			}
 			return;
 		case STAGE_REQUEST_2_PREV_OUTPUT:
-			if (!tx_hash_output(&tp, tx->bin_outputs)) {
+			if (!tx_serialize_output_hash(&tp, tx->bin_outputs)) {
 				fsm_sendFailure(FailureType_Failure_Other, "Failed to serialize output");
 				signing_abort();
 				return;
@@ -283,15 +288,8 @@ void signing_txack(TransactionType *tx)
 			}
 			return;
 		case STAGE_REQUEST_3_INPUT:
-			switch (storage_getLang()) {
-				case CHINESE :	
-					layoutProgress("准备#.##.##.#", 1000 * progress / progress_total, progress); progress++;
-					break;
-				default :
-					layoutProgress("Preparing", 1000 * progress / progress_total, progress); progress++;
-					break;
-			}
-			if (!tx_hash_input(&tc, tx->inputs)) {
+			progress++;
+			if (!tx_serialize_input_hash(&tc, tx->inputs)) {
 				fsm_sendFailure(FailureType_Failure_Other, "Failed to serialize input");
 				signing_abort();
 				return;
@@ -350,7 +348,7 @@ void signing_txack(TransactionType *tx)
 			} else {
 				tx->inputs[0].script_sig.size = 0;
 			}
-			if (!tx_hash_input(&ti, tx->inputs)) {
+			if (!tx_serialize_input_hash(&ti, tx->inputs)) {
 				fsm_sendFailure(FailureType_Failure_Other, "Failed to serialize input");
 				signing_abort();
 				return;
@@ -363,16 +361,9 @@ void signing_txack(TransactionType *tx)
 			}
 			return;
 		case STAGE_REQUEST_3_OUTPUT:
-			switch (storage_getLang()) {
-				case CHINESE :	
-					layoutProgress("签名#.##.##.#", 1000 * progress / progress_total, progress); progress++;
-					break;
-				default :
-					layoutProgress("Signing", 1000 * progress / progress_total, progress); progress++;
-					break;
-			}
-			bool is_change = false;
+			progress++;
 			if (idx1i == 0) {
+				bool is_change = false;
 				if (tx->outputs[0].script_type == OutputScriptType_PAYTOMULTISIG &&
 						tx->outputs[0].has_multisig &&
 						multisig_fp_set && !multisig_fp_mismatch) {
@@ -399,16 +390,14 @@ void signing_txack(TransactionType *tx)
 					}   
 				}   
 				spending += tx->outputs[0].amount;
-			}   
-			co = compile_output(coin, root, tx->outputs, &bin_output, idx1i == 0);
-			switch (storage_getLang()) {
-				case CHINESE :	
-					layoutProgress("签名#.##.##.#", 1000 * progress / progress_total, progress); progress++;
-					break;
-				default :
-					layoutProgress("Signing", 1000 * progress / progress_total, progress); progress++;
-					break;
+				co = compile_output(coin, root, tx->outputs, &bin_output, !is_change);
+				if (!is_change) {
+					layoutProgress("Signing transaction", 1000 * progress / progress_total);
+				}
+			} else {
+				co = compile_output(coin, root, tx->outputs, &bin_output, false);
 			}
+
 			if (co < 0) {
 				fsm_sendFailure(FailureType_Failure_Other, "Signing cancelled by user");
 				signing_abort();
@@ -418,12 +407,12 @@ void signing_txack(TransactionType *tx)
 				signing_abort();
 				return;
 			}
-			if (!tx_hash_output(&tc, &bin_output)) {
+			if (!tx_serialize_output_hash(&tc, &bin_output)) {
 				fsm_sendFailure(FailureType_Failure_Other, "Failed to serialize output");
 				signing_abort();
 				return;
 			}
-			if (!tx_hash_output(&ti, &bin_output)) {
+			if (!tx_serialize_output_hash(&ti, &bin_output)) {
 				fsm_sendFailure(FailureType_Failure_Other, "Failed to serialize output");
 				signing_abort();
 				return;
@@ -474,7 +463,7 @@ void signing_txack(TransactionType *tx)
 				} else { // SPENDADDRESS
 					input.script_sig.size = serialize_script_sig(resp.serialized.signature.bytes, resp.serialized.signature.size, pubkey, 33, input.script_sig.bytes);
 				}
-				resp.serialized.serialized_tx.size = tx_serialize_input(&to, input.prev_hash.bytes, input.prev_index, input.script_sig.bytes, input.script_sig.size, input.sequence, resp.serialized.serialized_tx.bytes);
+				resp.serialized.serialized_tx.size = tx_serialize_input(&to, &input, resp.serialized.serialized_tx.bytes);
 				if (idx1i < inputs_count - 1) {
 					idx1i++;
 					send_req_1_input();
@@ -501,27 +490,12 @@ void signing_txack(TransactionType *tx)
 						signing_abort();
 						return;
 					}
-					switch (storage_getLang()) {
-						case CHINESE :	
-							layoutProgress("签名#.##.##.#", 1000 * progress / progress_total, progress); progress++;
-							break;
-						default :
-							layoutProgress("Signing", 1000 * progress / progress_total, progress); progress++;
-							break;
-					}
 					send_req_4_output();
 				}
 			}
 			return;
 		case STAGE_REQUEST_4_OUTPUT:
-			switch (storage_getLang()) {
-				case CHINESE :	
-					layoutProgress("签名#.##.##.#", 1000 * progress / progress_total, progress); progress++;
-					break;
-				default :
-					layoutProgress("Signing", 1000 * progress / progress_total, progress); progress++;
-					break;
-			}
+			progress++;
 			if (compile_output(coin, root, tx->outputs, &bin_output, false) <= 0) {
 				fsm_sendFailure(FailureType_Failure_Other, "Failed to compile output");
 				signing_abort();
@@ -529,7 +503,7 @@ void signing_txack(TransactionType *tx)
 			}
 			resp.has_serialized = true;
 			resp.serialized.has_serialized_tx = true;
-			resp.serialized.serialized_tx.size = tx_serialize_output(&to, bin_output.amount, bin_output.script_pubkey.bytes, bin_output.script_pubkey.size, resp.serialized.serialized_tx.bytes);
+			resp.serialized.serialized_tx.size = tx_serialize_output(&to, &bin_output, resp.serialized.serialized_tx.bytes);
 			if (idx4o < outputs_count - 1) {
 				idx4o++;
 				send_req_4_output();

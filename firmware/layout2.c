@@ -44,7 +44,7 @@ void layoutZhDialogSwipe(LayoutDialogIcon icon, const char *btnNo, const char *b
 	layoutZhDialog(icon, btnNo, btnYes, desc, line1, line2, line3, line4);
 }
 
-void layoutProgressSwipe(const char *desc, int permil, int gearstep)
+void layoutProgressSwipe(const char *desc, int permil)
 {
 	if (layoutLast == layoutProgressSwipe) {
 		oledClear();
@@ -52,7 +52,7 @@ void layoutProgressSwipe(const char *desc, int permil, int gearstep)
 		layoutLast = layoutProgressSwipe;
 		oledSwipeLeft();
 	}
-	layoutProgress(desc, permil, gearstep);
+	layoutProgress(desc, permil);
 }
 
 void layoutHome(void)

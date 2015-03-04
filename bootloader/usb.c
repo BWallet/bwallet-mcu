@@ -344,10 +344,10 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 			if (button.YesUp) {
 				switch (language) {
 					case CHINESE:
-						layoutProgress("安装中#,#请等待#.##.##.#", 0, 0);
+						layoutProgress("安装中#,#请等待#.##.##.#", 0);
 						break;
 					default :
-						layoutProgress("INSTALLING ... Please wait", 0, 0);
+						layoutProgress("INSTALLING ... Please wait", 0);
 						break;
 				}
 				// backup metadata
@@ -451,10 +451,10 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 		p = buf + 1;
 		switch (language) {
 			case CHINESE:
-				layoutProgress("安装中#,#请等待#.##.##.#", 1000 * flash_pos / flash_len, flash_anim / 8);
+				layoutProgress("安装中#,#请等待#.##.##.#", 1000 * flash_pos / flash_len);
 				break;
 			default :
-				layoutProgress("INSTALLING ... Please wait", 1000 * flash_pos / flash_len, flash_anim / 8);
+				layoutProgress("INSTALLING ... Please wait", 1000 * flash_pos / flash_len);
 				break;
 		}
 		flash_anim++;
@@ -514,10 +514,10 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 
 		switch (language) {
 			case CHINESE:
-				layoutProgress("安装中#,#请等待", 1000, 0);
+				layoutProgress("安装中#,#请等待", 1000);
 				break;
 			default :
-				layoutProgress("INSTALLING ... Please wait", 1000, 0);
+				layoutProgress("INSTALLING ... Please wait", 1000);
 				break;
 		}
 		uint8_t flags = *((uint8_t *)FLASH_META_FLAGS);
