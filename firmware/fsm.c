@@ -44,6 +44,7 @@
 #include "serialno.h"
 #include "crypto.h"
 #include "base58.h"
+#include "bip39.h"
 
 // message methods
 
@@ -353,6 +354,13 @@ void fsm_msgLoadDevice(LoadDevice *msg)
 		return;
 	}
 
+	if (msg->has_mnemonic && !(msg->has_skip_checksum && msg->skip_checksum) ) { 
+		if (!mnemonic_check(msg->mnemonic)) {
+			fsm_sendFailure(FailureType_Failure_ActionCancelled, "Mnemonic with wrong checksum provided");
+			layoutHome();
+			return;
+		}   
+	}   
 	storage_loadDevice(msg);
 	storage_commit();
 	fsm_sendSuccess("Device loaded");
@@ -615,9 +623,6 @@ void fsm_msgSignMessage(SignMessage *msg)
 
 	fsm_deriveKey(node, msg->address_n, msg->address_n_count);
 
-	uint8_t addr_raw[21];
-	ecdsa_get_address_raw(node->public_key, coin->address_type, addr_raw);
-	base58_encode_check(addr_raw, 21, resp->address);
 	switch (storage_getLang()) {
 		case CHINESE:
 			layoutProgressSwipe("签名#.##.##.#", 0, 0);
@@ -626,14 +631,17 @@ void fsm_msgSignMessage(SignMessage *msg)
 			layoutProgressSwipe("Signing", 0, 0);
 			break;
 	}
-	if (cryptoMessageSign(msg->message.bytes, msg->message.size, node->private_key, addr_raw, resp->signature.bytes)) {
+	if (cryptoMessageSign(msg->message.bytes, msg->message.size, node->private_key, resp->signature.bytes) == 0) {
 		resp->has_address = true;
+		uint8_t addr_raw[21];
+		ecdsa_get_address_raw(node->public_key, coin->address_type, addr_raw);
+		base58_encode_check(addr_raw, 21, resp->address);
 		resp->has_signature = true;
-		resp->signature.size = 65;
+		resp->signature.size = 65; 
 		msg_write(MessageType_MessageType_MessageSignature, resp);
 	} else {
 		fsm_sendFailure(FailureType_Failure_Other, "Error signing message");
-	}
+	}   
 	layoutHome();
 }
 
