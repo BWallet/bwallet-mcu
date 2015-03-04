@@ -219,6 +219,8 @@ void signing_txack(TransactionType *tx)
 	}
 
 	int co;
+	static bool multisig_fp_set, multisig_fp_mismatch;
+	static uint8_t multisig_fp[32];
 
 	memset(&resp, 0, sizeof(TxRequest));
 
@@ -233,6 +235,8 @@ void signing_txack(TransactionType *tx)
 					break;
 			}
 			memcpy(&input, tx->inputs, sizeof(TxInputType));
+			multisig_fp_set = false;
+			multisig_fp_mismatch = false;
 			send_req_2_prev_meta();
 			return;
 		case STAGE_REQUEST_2_PREV_META:
@@ -292,6 +296,29 @@ void signing_txack(TransactionType *tx)
 				signing_abort();
 				return;
 			}
+			if (idx1i == 0) {
+				if (tx->inputs[0].script_type == InputScriptType_SPENDMULTISIG &&
+						tx->inputs[0].has_multisig && !multisig_fp_mismatch) {
+					if (multisig_fp_set) {
+						uint8_t h[32];
+						if (cryptoMultisigFingerprint(&(tx->inputs[0].multisig), h) == 0) {
+							fsm_sendFailure(FailureType_Failure_Other, "Error computing multisig fingeprint");
+							signing_abort();
+							return;
+						}
+						if (memcmp(multisig_fp, h, 32) != 0) {
+							multisig_fp_mismatch = true;
+						}
+					} else {
+						if (cryptoMultisigFingerprint(&(tx->inputs[0].multisig), multisig_fp) == 0) {
+							fsm_sendFailure(FailureType_Failure_Other, "Error computing multisig fingeprint");
+							signing_abort();
+							return;
+						}
+						multisig_fp_set = true;
+					}
+				}
+			}
 			if (idx3i == idx1i) {
 				memcpy(&node, root, sizeof(HDNode));
 				uint32_t k;
@@ -344,6 +371,35 @@ void signing_txack(TransactionType *tx)
 					layoutProgress("Signing", 1000 * progress / progress_total, progress); progress++;
 					break;
 			}
+			bool is_change = false;
+			if (idx1i == 0) {
+				if (tx->outputs[0].script_type == OutputScriptType_PAYTOMULTISIG &&
+						tx->outputs[0].has_multisig &&
+						multisig_fp_set && !multisig_fp_mismatch) {
+					uint8_t h[32];
+					if (cryptoMultisigFingerprint(&(tx->outputs[0].multisig), h) == 0) {
+						fsm_sendFailure(FailureType_Failure_Other, "Error computing multisig fingeprint");
+						signing_abort();
+						return;
+					}
+					if (memcmp(multisig_fp, h, 32) == 0) {
+						is_change = true;
+					}
+				} else if (tx->outputs[0].script_type == OutputScriptType_PAYTOADDRESS &&
+						tx->outputs[0].address_n_count > 0) {
+					is_change = true;
+				}
+				if (is_change) {
+					if (change_spend == 0) { // not set
+						change_spend = tx->outputs[0].amount;
+					} else {
+						fsm_sendFailure(FailureType_Failure_Other, "Only one change output allowed");
+						signing_abort();
+						return;
+					}   
+				}   
+				spending += tx->outputs[0].amount;
+			}   
 			co = compile_output(coin, root, tx->outputs, &bin_output, idx1i == 0);
 			switch (storage_getLang()) {
 				case CHINESE :	
@@ -371,18 +427,6 @@ void signing_txack(TransactionType *tx)
 				fsm_sendFailure(FailureType_Failure_Other, "Failed to serialize output");
 				signing_abort();
 				return;
-			}
-			if (idx1i == 0) {
-				if (tx->outputs[0].address_n_count > 0) { // address_n set -> change address
-					if (change_spend == 0) { // not set
-						change_spend = tx->outputs[0].amount;
-					} else {
-						fsm_sendFailure(FailureType_Failure_Other, "Only one change output allowed");
-						signing_abort();
-						return;
-					}
-				}
-				spending += tx->outputs[0].amount;
 			}
 			if (idx3o < outputs_count - 1) {
 				idx3o++;
