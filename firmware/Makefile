@@ -38,7 +38,7 @@ OBJS += ../bwallet-crypto/aes_modes.o
 
 OBJS += ../bwallet-qrenc/qr_encode.o
 
-OBJS += protob/pb_common.o
+#OBJS += protob/pb_common.o
 OBJS += protob/pb_decode.o
 OBJS += protob/pb_encode.o
 OBJS += protob/messages.pb.o
