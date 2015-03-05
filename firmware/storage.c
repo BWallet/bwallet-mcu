@@ -386,6 +386,7 @@ void storage_increasePinFails(void)
 
 uint32_t storage_getPinFails(void)
 {
+	storage_from_flash(STORAGE_VERSION);
 	return storage.has_pin_failed_attempts ? storage.pin_failed_attempts : 0;
 }
 

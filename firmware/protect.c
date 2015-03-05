@@ -145,10 +145,9 @@ bool protectPin(bool use_cached)
 	if (!storage.has_pin || strlen(storage.pin) == 0 || (use_cached && session_isPinCached())) {
 		return true;
 	}
-	const char *pin;
-	uint32_t wait = storage_getPinFails();
-	if (wait) {
-		if (wait > 2) {
+	uint32_t fails = storage_getPinFails();
+	if (fails) {
+		if (fails > 2) {
 			switch (storage_getLang()) {
 				case CHINESE :
 					layoutZhDialogSwipe(DIALOG_ICON_INFO, NULL, NULL, NULL, "输入#P##I##N#码错误", NULL, "请稍等#.##.##.#", NULL);
@@ -158,11 +157,15 @@ bool protectPin(bool use_cached)
 					break;
 			}
 		}
-		wait = (wait < 32) ? (1u << wait) : 0xFFFFFFFF;
+		uint32_t wait;
+		wait = (fails < 32) ? (1u << fails) : 0xFFFFFFFF;
 		while (--wait > 0) {
 			delay(10000000);
 		}
 	}
+	storage_increasePinFails();
+	bool increase_failed = (fails >= storage_getPinFails());
+	const char *pin;
 	switch (storage_getLang()) {
 		case CHINESE :
 			pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_Current, "请输入当前#P##I##N#码#:#");
@@ -175,12 +178,11 @@ bool protectPin(bool use_cached)
 		fsm_sendFailure(FailureType_Failure_PinCancelled, "PIN Cancelled");
 		return false;
 	}
-	if (storage_isPinCorrect(pin)) {
+	if (storage_isPinCorrect(pin) && !increase_failed) {
 		session_cachePin(pin);
 		storage_resetPinFails();
 		return true;
 	} else {
-		storage_increasePinFails();
 		fsm_sendFailure(FailureType_Failure_PinInvalid, "Invalid PIN");
 		return false;
 	}
