@@ -103,35 +103,12 @@ const HDNode *fsm_getDerivedNode(uint32_t *address_n, size_t address_n_count)
 		return &node;
 	}
 
-	size_t i;
-	if (address_n_count > 3) {
-		switch (storage_getLang()) {
-			case CHINESE:
-				layoutProgressSwipe("准备私钥", 0);
-				break;
-			default :
-				layoutProgressSwipe("Preparing keys", 0);
-				break;
-		}
-	}
-	for (i = 0; i < address_n_count; i++) {
-		if (hdnode_private_ckd(&node, address_n[i]) == 0) {
-			fsm_sendFailure(FailureType_Failure_Other, "Failed to derive private key");
-			layoutHome();
-			return 0;
-		}   
-		if (address_n_count > 3) {
-			switch (storage_getLang()) {
-				case CHINESE:
-					layoutProgress("准备私钥", 1000 * i / address_n_count);
-					break;
-				default :
-					layoutProgress("Preparing keys", 1000 * i / address_n_count);
-					break;
-			}
-		}
-	}
-	 return &node;
+	if (hdnode_private_ckd_cached(&node, address_n, address_n_count) == 0) {
+		fsm_sendFailure(FailureType_Failure_Other, "Failed to derive private key");
+		layoutHome();
+		return 0;
+	}   
+	return &node;
 }
 
 void fsm_msgInitialize(Initialize *msg)
