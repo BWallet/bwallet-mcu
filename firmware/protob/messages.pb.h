@@ -94,10 +94,6 @@ typedef struct _FirmwareErase {
     uint8_t dummy_field;
 } FirmwareErase;
 
-typedef struct _Initialize {
-    uint8_t dummy_field;
-} Initialize;
-
 typedef struct _PassphraseRequest {
     uint8_t dummy_field;
 } PassphraseRequest;
@@ -408,6 +404,10 @@ typedef struct _GetPublicKey {
     uint32_t address_n[8];
 } GetPublicKey;
 
+typedef struct _Initialize {
+    pb_callback_t language;
+} Initialize;
+
 typedef struct _LoadDevice {
     bool has_mnemonic;
     char mnemonic[241];
@@ -588,7 +588,7 @@ extern const char SignTx_coin_name_default[17];
 extern const char SimpleSignTx_coin_name_default[17];
 
 /* Initializer values for message structs */
-#define Initialize_init_default                  {0}
+#define Initialize_init_default                  {{{NULL}, NULL}}
 #define Features_init_default                    {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
 #define ClearSession_init_default                {0}
 #define ApplySettings_init_default               {false, "", false, "", false, 0, false, {0, {0}}}
@@ -639,7 +639,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define DebugLinkState_init_default              {false, {0, {0}}, false, "", false, "", false, "", false, HDNodeType_init_default, false, 0, false, "", false, {0, {0}}, false, "", false, 0}
 #define DebugLinkStop_init_default               {0}
 #define DebugLinkLog_init_default                {false, 0, false, "", false, ""}
-#define Initialize_init_zero                     {0}
+#define Initialize_init_zero                     {{{NULL}, NULL}}
 #define Features_init_zero                       {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
 #define ClearSession_init_zero                   {0}
 #define ApplySettings_init_zero                  {false, "", false, "", false, 0, false, {0, {0}}}
@@ -764,6 +764,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define GetAddress_multisig_tag                  4
 #define GetEntropy_size_tag                      1
 #define GetPublicKey_address_n_tag               1
+#define Initialize_language_tag                  1
 #define LoadDevice_mnemonic_tag                  1
 #define LoadDevice_node_tag                      2
 #define LoadDevice_pin_tag                       3
@@ -816,7 +817,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define WordAck_word_tag                         1
 
 /* Struct field encoding specification for nanopb */
-extern const pb_field_t Initialize_fields[1];
+extern const pb_field_t Initialize_fields[2];
 extern const pb_field_t Features_fields[16];
 extern const pb_field_t ClearSession_fields[1];
 extern const pb_field_t ApplySettings_fields[5];
@@ -869,7 +870,6 @@ extern const pb_field_t DebugLinkStop_fields[1];
 extern const pb_field_t DebugLinkLog_fields[4];
 
 /* Maximum encoded size of messages (where known) */
-#define Initialize_size                          0
 #define Features_size                            (230 + 5*CoinType_size)
 #define ClearSession_size                        0
 #define ApplySettings_size                       1083

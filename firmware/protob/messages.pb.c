@@ -15,7 +15,8 @@ const char SignTx_coin_name_default[17] = "Bitcoin";
 const char SimpleSignTx_coin_name_default[17] = "Bitcoin";
 
 
-const pb_field_t Initialize_fields[1] = {
+const pb_field_t Initialize_fields[2] = {
+    PB_FIELD2(  1, STRING  , OPTIONAL, CALLBACK, FIRST, Initialize, language, language, 0),
     PB_LAST_FIELD
 };
 
