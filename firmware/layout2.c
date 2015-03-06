@@ -346,7 +346,7 @@ void layoutAddress(const char *address)
 	oledDrawString(68, 1 * 9, str[1]);
 	oledDrawString(68, 2 * 9, str[2]);
 	oledDrawString(68, 3 * 9, str[3]);
-	
+
 	static const char *btnYes = "Continue";
 	static const char *btnZhYes = "继续";
 	switch (storage_getLang()) {
@@ -356,9 +356,9 @@ void layoutAddress(const char *address)
 			oledInvert(OLED_WIDTH - ((strlen(btnZhYes) / 3) * 12) - 12, OLED_HEIGHT - 13, OLED_WIDTH - 1, OLED_HEIGHT - 1);
 			break;
 		default :
-			oledDrawString(OLED_WIDTH - fontCharWidth('\xff') - 1, OLED_HEIGHT - 8, "\xff");
-			oledDrawString(OLED_WIDTH - oledStringWidth(btnYes) - fontCharWidth('\xff') - 3, OLED_HEIGHT - 8, btnYes);
-			oledInvert(OLED_WIDTH - oledStringWidth(btnYes) - fontCharWidth('\xff') - 4, OLED_HEIGHT - 9, OLED_WIDTH - 1, OLED_HEIGHT - 1); 
+			oledDrawString(OLED_WIDTH - fontCharWidth('\x06') - 1, OLED_HEIGHT - 8, "\x06");
+			oledDrawString(OLED_WIDTH - oledStringWidth(btnYes) - fontCharWidth('\x06') - 3, OLED_HEIGHT - 8, btnYes);
+			oledInvert(OLED_WIDTH - oledStringWidth(btnYes) - fontCharWidth('\x06') - 4, OLED_HEIGHT - 9, OLED_WIDTH - 1, OLED_HEIGHT - 1); 
 			break;
 	}
 

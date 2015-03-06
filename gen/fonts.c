@@ -7,7 +7,7 @@ const uint8_t *font_data[256] = {
 	/* 0x03 _ */ (uint8_t *)"\x01\x00",
 	/* 0x04 _ */ (uint8_t *)"\x01\x00",
 	/* 0x05 _ */ (uint8_t *)"\x01\x00",
-	/* 0x06 _ */ (uint8_t *)"\x01\x00",
+	/* 0x06 _ */ (uint8_t *)"\x07\x18\x1c\x0e\x18\x30\x40\x80",
 	/* 0x07 _ */ (uint8_t *)"\x01\x00",
 	/* 0x08 _ */ (uint8_t *)"\x01\x00",
 	/* 0x09 _ */ (uint8_t *)"\x01\x00",
@@ -22,7 +22,7 @@ const uint8_t *font_data[256] = {
 	/* 0x12 _ */ (uint8_t *)"\x01\x00",
 	/* 0x13 _ */ (uint8_t *)"\x01\x00",
 	/* 0x14 _ */ (uint8_t *)"\x01\x00",
-	/* 0x15 _ */ (uint8_t *)"\x01\x00",
+	/* 0x15 _ */ (uint8_t *)"\x07\x44\xee\x7c\x38\x7c\xee\x44",
 	/* 0x16 _ */ (uint8_t *)"\x01\x00",
 	/* 0x17 _ */ (uint8_t *)"\x01\x00",
 	/* 0x18 _ */ (uint8_t *)"\x01\x00",
@@ -100,7 +100,7 @@ const uint8_t *font_data[256] = {
 	/* 0x60 ` */ (uint8_t *)"\x02\x80\x40",
 	/* 0x61 a */ (uint8_t *)"\x05\x04\x2e\x2a\x3e\x1e",
 	/* 0x62 b */ (uint8_t *)"\x05\xfe\xfe\x22\x3e\x1c",
-	/* 0x63 c */ (uint8_t *)"\x04\x1c\x3e\x22\x22",
+	/* 0x63 c */ (uint8_t *)"\x05\x1c\x3e\x22\x22\x14",
 	/* 0x64 d */ (uint8_t *)"\x05\x1c\x3e\x22\xfe\xfe",
 	/* 0x65 e */ (uint8_t *)"\x05\x1c\x3e\x2a\x3a\x1a",
 	/* 0x66 f */ (uint8_t *)"\x03\x7e\xfe\xa0",
@@ -255,8 +255,8 @@ const uint8_t *font_data[256] = {
 	/* 0xfb _ */ (uint8_t *)"\x01\x00",
 	/* 0xfc _ */ (uint8_t *)"\x01\x00",
 	/* 0xfd _ */ (uint8_t *)"\x01\x00",
-	/* 0xfe _ */ (uint8_t *)"\x07\x44\xee\x7c\x38\x7c\xee\x44",
-	/* 0xff _ */ (uint8_t *)"\x07\x18\x1c\x0e\x18\x30\x40\x80",
+	/* 0xfe _ */ (uint8_t *)"\x01\x00",
+	/* 0xff _ */ (uint8_t *)"\x01\x00",
 };
 
 int fontCharWidth(char c) {
