@@ -295,7 +295,7 @@ void layoutCipherKeyValue(bool encrypt, const char *key)
 			break;
 		default :
 			layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm",
-					encrypt ? "Encrypt?" : "Decrypt?",
+					encrypt ? "Encode value of this key?" : "Decode value of this key?",
 					str[0], str[1], str[2], str[3], NULL, NULL);
 			break;
 	}
