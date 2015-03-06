@@ -67,15 +67,15 @@ void layoutDialog(LayoutDialogIcon icon, const char *btnNo, const char *btnYes, 
 		}
 	}
 	if (btnNo) {
-		oledDrawString(1, OLED_HEIGHT - 8, "{");
-		oledDrawString(fontCharWidth('{') + 3, OLED_HEIGHT - 8, btnNo);
-		oledInvert(0, OLED_HEIGHT - 9, fontCharWidth('{') + fontStringWidth(btnNo) + 2, OLED_HEIGHT - 1);
-	}
+		oledDrawString(1, OLED_HEIGHT - 8, "\xfe");
+		oledDrawString(fontCharWidth('\xfe') + 3, OLED_HEIGHT - 8, btnNo);
+		oledInvert(0, OLED_HEIGHT - 9, fontCharWidth('\xfe') + oledStringWidth(btnNo) + 2, OLED_HEIGHT - 1); 
+	}   
 	if (btnYes) {
-		oledDrawString(OLED_WIDTH - fontCharWidth('}') - 1, OLED_HEIGHT - 8, "}");
-		oledDrawString(OLED_WIDTH - fontStringWidth(btnYes) - fontCharWidth('}') - 3, OLED_HEIGHT - 8, btnYes);
-		oledInvert(OLED_WIDTH - fontStringWidth(btnYes) - fontCharWidth('}') - 4, OLED_HEIGHT - 9, OLED_WIDTH - 1, OLED_HEIGHT - 1);
-	}
+		oledDrawString(OLED_WIDTH - fontCharWidth('\xff') - 1, OLED_HEIGHT - 8, "\xff");
+		oledDrawString(OLED_WIDTH - oledStringWidth(btnYes) - fontCharWidth('\xff') - 3, OLED_HEIGHT - 8, btnYes);
+		oledInvert(OLED_WIDTH - oledStringWidth(btnYes) - fontCharWidth('\xff') - 4, OLED_HEIGHT - 9, OLED_WIDTH - 1, OLED_HEIGHT - 1); 
+	}   
 	oledRefresh();
 }
 
