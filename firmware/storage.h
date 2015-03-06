@@ -39,10 +39,12 @@ const char *storage_getLabel(void);
 void storage_setLabel(const char *label);
 
 const char *storage_getLanguage(void);
-int storage_getLang(void);
 void storage_setLanguage(const char *lang);
 
 void storage_setPassphraseProtection(bool passphrase_protection);
+
+const uint8_t *storage_getHomescreen(void);
+void storage_setHomescreen(const uint8_t *data, uint32_t size);
 
 void session_cachePassphrase(const char *passphrase);
 bool session_isPassphraseCached(void);
@@ -61,11 +63,5 @@ bool storage_isInitialized(void);
 extern Storage storage;
 
 extern char storage_uuid_str[25];
-
-enum {
-	CHINESE,
-	ENGLISH,
-};
-
 
 #endif
