@@ -273,7 +273,7 @@ void layoutVerifyMessage(const uint8_t *msg, uint32_t len)
 	switch (storage_getLang()) {
 		case CHINESE :
 			layoutZhDialogSwipe(DIALOG_ICON_QUESTION, NULL, "确认", 
-					"消息内容",
+					"验证消息",
 					str[0], str[1], str[2], str[3]);
 			break;
 		default :
@@ -290,7 +290,7 @@ void layoutCipherKeyValue(bool encrypt, const char *key)
 	switch (storage_getLang()) {
 		case CHINESE :
 			layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认",
-					encrypt ? "加密" : "解密",
+					encrypt ? "编码键值#?#" : "解码键值#?#",
 					str[0], str[1], str[2], str[3]);
 			break;
 		default :
@@ -304,17 +304,35 @@ void layoutCipherKeyValue(bool encrypt, const char *key)
 void layoutEncryptMessage(const uint8_t *msg, uint32_t len, bool signing)
 {
 	const char **str = split_message(msg, len, 16);
-	layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm",
-			signing ? "Encrypt+Sign message?" : "Encrypt message?",
-			str[0], str[1], str[2], str[3], NULL, NULL);
+	switch (storage_getLang()) {
+		case CHINESE :
+			layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", 
+					signing ? "加密签名消息" : "加密消息", 
+					str[0], str[1], str[2], str[3]);
+			break;
+		default :
+			layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm",
+					signing ? "Encrypt+Sign message?" : "Encrypt message?",
+					str[0], str[1], str[2], str[3], NULL, NULL);
+			break;
+	}
 }
 
 void layoutDecryptMessage(const uint8_t *msg, uint32_t len, const char *address)
 {
 	const char **str = split_message(msg, len, 16);
-	layoutDialogSwipe(DIALOG_ICON_INFO, NULL, "OK",
-			address ? "Decrypted signed message" : "Decrypted message",
-			str[0], str[1], str[2], str[3], NULL, NULL);
+	switch (storage_getLang()) {
+		case CHINESE :
+			layoutZhDialogSwipe(DIALOG_ICON_QUESTION, NULL, "确认", 
+					address ? "解密签名的消息" : "解密消息", 
+					str[0], str[1], str[2], str[3]);
+			break;
+		default :
+			layoutDialogSwipe(DIALOG_ICON_INFO, NULL, "OK",
+					address ? "Decrypted signed message" : "Decrypted message",
+					str[0], str[1], str[2], str[3], NULL, NULL);
+			break;
+	}
 }
 
 void layoutAddress(const char *address)

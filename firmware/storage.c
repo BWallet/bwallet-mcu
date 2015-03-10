@@ -186,7 +186,6 @@ void storage_loadDevice(LoadDevice *msg)
 		memset(&sessionRootNode, 0, sizeof(sessionRootNode));
 	}
 
-//	printf("load language\r\n");
 	if (msg->has_language) {
 		storage_setLanguage(msg->language);
 	}

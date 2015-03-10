@@ -144,7 +144,7 @@ void check_firmware_sanity(void)
 int main(void)
 {
 	setup();
-	memory_protect();
+//	memory_protect();
 	oledInit();
 
 	// at least one button is unpressed

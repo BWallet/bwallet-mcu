@@ -25,6 +25,7 @@
 #include "ecdsa.h"
 #include "protect.h"
 #include "crypto.h"
+#include "storage.h"
 
 static uint32_t inputs_count;
 static uint32_t outputs_count;
@@ -251,8 +252,15 @@ void signing_init(uint32_t _inputs_count, uint32_t _outputs_count, const CoinTyp
 
 	tx_init(&to, inputs_count, outputs_count, version, lock_time, false);
 	tx_init(&tc, inputs_count, outputs_count, version, lock_time, false);
-
-	layoutProgressSwipe("Signing transaction", 0);
+	
+	switch (storage_getLang()) {
+		case CHINESE :
+			layoutProgressSwipe("交易签名#.##.##.#", 0);
+			break;
+		default :
+			layoutProgressSwipe("Signing transaction", 0);
+			break;
+	}
 
 	send_req_1_input();
 }

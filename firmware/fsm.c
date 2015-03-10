@@ -523,7 +523,14 @@ void fsm_msgApplySettings(ApplySettings *msg)
 	}
 
 	if (msg->has_use_passphrase) {
-		layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", msg->use_passphrase ? "enable passphrase" : "disable passphrase", "encryption?", NULL, NULL, NULL);
+		switch (storage_getLang()) {
+			case CHINESE :
+				layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, NULL, msg->use_passphrase ? "开启密码" : "禁止密码", "加密#?#", NULL);
+				break;
+			default :
+				layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", msg->use_passphrase ? "enable passphrase" : "disable passphrase", "encryption?", NULL, NULL, NULL);
+				break;
+		}
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, "Apply settings cancelled");
 			layoutHome();
@@ -532,7 +539,14 @@ void fsm_msgApplySettings(ApplySettings *msg)
 	}   
 
 	if (msg->has_homescreen) {
-		layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", "change the home", "screen ?", NULL, NULL, NULL);
+		switch (storage_getLang()) {
+			case CHINESE :
+				layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, NULL, "改变屏幕显示", NULL, NULL);
+				break;
+			default :
+				layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", "change the home", "screen ?", NULL, NULL, NULL);
+				break;
+		}
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, "Apply settings cancelled");
 			layoutHome();
@@ -576,7 +590,15 @@ void fsm_msgGetAddress(GetAddress *msg)
 
 
 	if (msg->has_multisig) {
-		layoutProgressSwipe("Preparing", 0);
+		switch (storage_getLang()) {
+			case CHINESE :
+				layoutProgressSwipe("准备#.##.##.#", 0);
+				break;
+			default :
+				layoutProgressSwipe("Preparing", 0);
+				break;
+
+		}
 		if (cryptoMultisigPubkeyIndex(&(msg->multisig), node->public_key) < 0) {
 			fsm_sendFailure(FailureType_Failure_Other, "Pubkey not found in multisig script");
 			layoutHome();
@@ -740,10 +762,17 @@ void fsm_msgEncryptMessage(EncryptMessage *msg)
 		layoutHome();
 		return;
 	}
-	layoutProgressSwipe("Encrypting", 0);
+	switch (storage_getLang()) {
+		case CHINESE:
+			layoutProgressSwipe("加密#.##.##.#", 0);
+			break;
+		default :
+			layoutProgressSwipe("Encrypting", 0);
+			break;
+	}
 	if (cryptoMessageEncrypt(&pubkey, msg->message.bytes, msg->message.size, display_only, 
-		resp->nonce.bytes, &(resp->nonce.size), resp->message.bytes, &(resp->message.size), 
-		resp->hmac.bytes, &(resp->hmac.size), signing ? node->private_key : 0, signing ? address_raw : 0) != 0) {
+				resp->nonce.bytes, &(resp->nonce.size), resp->message.bytes, &(resp->message.size), 
+				resp->hmac.bytes, &(resp->hmac.size), signing ? node->private_key : 0, signing ? address_raw : 0) != 0) {
 		fsm_sendFailure(FailureType_Failure_ActionCancelled, "Error encrypting message");
 		layoutHome();
 		return;
@@ -781,7 +810,14 @@ void fsm_msgDecryptMessage(DecryptMessage *msg)
 	const HDNode *node = fsm_getDerivedNode(msg->address_n, msg->address_n_count);
 	if (!node) return;
 
-	layoutProgressSwipe("Decrypting", 0);
+	switch (storage_getLang()) {
+		case CHINESE:
+			layoutProgressSwipe("解密#.##.##.#", 0);
+			break;
+		default :
+			layoutProgressSwipe("Decrypting", 0);
+			break;
+	}
 	RESP_INIT(DecryptedMessage);
 	bool display_only = false;
 	bool signing = false;
