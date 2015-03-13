@@ -875,6 +875,15 @@ void fsm_msgWordAck(WordAck *msg)
 	recovery_word(msg->word);
 }
 
+void fsm_msgTestScreen(TestScreen *msg)
+{
+	uint32_t delay_time = msg->delay_time * 20000000;
+	layoutScreen();
+	while(delay_time--)
+		__asm__("nop");
+	layoutHome();
+}
+
 #if DEBUG_LINK
 
 void fsm_msgDebugLinkGetState(DebugLinkGetState *msg)

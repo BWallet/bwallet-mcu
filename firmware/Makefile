@@ -53,4 +53,4 @@ CFLAGS += -DQR_MAX_VERSION=0
 CFLAGS += -DUSE_PUBKEY_VALIDATE=0
 CFLAGS += -DDEBUG_LINK=0
 CFLAGS += -DDEBUG_LOG=0
-CFLAGS += -DSCM_REVISION='"$(shell git rev-parse HEAD | sed 's:\(..\):\\x\1:g')"'
+#CFLAGS += -DSCM_REVISION='"$(shell git rev-parse HEAD | sed 's:\(..\):\\x\1:g')"'

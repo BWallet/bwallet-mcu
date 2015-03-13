@@ -58,6 +58,7 @@ typedef enum _MessageType {
     MessageType_MessageType_RecoveryDevice = 45,
     MessageType_MessageType_WordRequest = 46,
     MessageType_MessageType_WordAck = 47,
+    MessageType_MessageType_TestScreen = 99,
     MessageType_MessageType_DebugLinkDecision = 100,
     MessageType_MessageType_DebugLinkGetState = 101,
     MessageType_MessageType_DebugLinkState = 102,
@@ -533,6 +534,10 @@ typedef struct _Success {
     char message[256];
 } Success;
 
+typedef struct _TestScreen {
+    uint32_t delay_time;
+} TestScreen;
+
 typedef struct _TxAck {
     bool has_tx;
     TransactionType tx;
@@ -586,6 +591,7 @@ extern const char EncryptMessage_coin_name_default[17];
 extern const char EstimateTxSize_coin_name_default[17];
 extern const char SignTx_coin_name_default[17];
 extern const char SimpleSignTx_coin_name_default[17];
+extern const uint32_t TestScreen_delay_time_default;
 
 /* Initializer values for message structs */
 #define Initialize_init_default                  {{{NULL}, NULL}}
@@ -634,6 +640,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define TxAck_init_default                       {false, TransactionType_init_default}
 #define FirmwareErase_init_default               {0}
 #define FirmwareUpload_init_default              {{0, {0}}}
+#define TestScreen_init_default                  {1u}
 #define DebugLinkDecision_init_default           {0}
 #define DebugLinkGetState_init_default           {0}
 #define DebugLinkState_init_default              {false, {0, {0}}, false, "", false, "", false, "", false, HDNodeType_init_default, false, 0, false, "", false, {0, {0}}, false, "", false, 0}
@@ -685,6 +692,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define TxAck_init_zero                          {false, TransactionType_init_zero}
 #define FirmwareErase_init_zero                  {0}
 #define FirmwareUpload_init_zero                 {{0, {0}}}
+#define TestScreen_init_zero                     {0}
 #define DebugLinkDecision_init_zero              {0}
 #define DebugLinkGetState_init_zero              {0}
 #define DebugLinkState_init_zero                 {false, {0, {0}}, false, "", false, "", false, "", false, HDNodeType_init_zero, false, 0, false, "", false, {0, {0}}, false, "", false, 0}
@@ -806,6 +814,7 @@ extern const char SimpleSignTx_coin_name_default[17];
 #define SimpleSignTx_transactions_tag            3
 #define SimpleSignTx_coin_name_tag               4
 #define Success_message_tag                      1
+#define TestScreen_delay_time_tag                1
 #define TxAck_tx_tag                             1
 #define TxRequest_request_type_tag               1
 #define TxRequest_details_tag                    2
@@ -863,6 +872,7 @@ extern const pb_field_t TxRequest_fields[4];
 extern const pb_field_t TxAck_fields[2];
 extern const pb_field_t FirmwareErase_fields[1];
 extern const pb_field_t FirmwareUpload_fields[2];
+extern const pb_field_t TestScreen_fields[2];
 extern const pb_field_t DebugLinkDecision_fields[2];
 extern const pb_field_t DebugLinkGetState_fields[1];
 extern const pb_field_t DebugLinkState_fields[11];
@@ -915,6 +925,7 @@ extern const pb_field_t DebugLinkLog_fields[4];
 #define TxAck_size                               (6 + TransactionType_size)
 #define FirmwareErase_size                       0
 #define FirmwareUpload_size                      2
+#define TestScreen_size                          6
 #define DebugLinkDecision_size                   2
 #define DebugLinkGetState_size                   0
 #define DebugLinkState_size                      (1468 + HDNodeType_size)
