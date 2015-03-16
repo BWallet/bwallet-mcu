@@ -7,3 +7,5 @@
 *.list
 *.srec
 *.log
+*.out
+tags

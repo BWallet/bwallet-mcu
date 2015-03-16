@@ -554,7 +554,7 @@ void fsm_msgApplySettings(ApplySettings *msg)
 		}
 	}
 
-	if (!msg->has_label && !msg->has_language && !msg->has_use_passphrase) {
+	if (!msg->has_label && !msg->has_language && !msg->has_use_passphrase && !msg->has_homescreen) {
 		fsm_sendFailure(FailureType_Failure_SyntaxError, "No setting provided");
 		return;
 	}   
@@ -655,15 +655,10 @@ void fsm_msgSignMessage(SignMessage *msg)
 		return;
 	}
 
+	const CoinType *coin = fsm_getCoin(msg->coin_name);
+	if(!coin) return;
 	const HDNode *node = fsm_getDerivedNode(msg->address_n, msg->address_n_count);
 	if (!node) return;
-	const CoinType *coin = coinByName(msg->coin_name);
-	if (!coin) {
-		fsm_sendFailure(FailureType_Failure_Other, "Invalid coin name");
-		layoutHome();
-		return;
-	}
-
 
 	switch (storage_getLang()) {
 		case CHINESE:
@@ -754,7 +749,7 @@ void fsm_msgEncryptMessage(EncryptMessage *msg)
 		if (!node) return;
 		uint8_t public_key[33];
 		ecdsa_get_public_key33(node->private_key, public_key);
-		ecdsa_get_address_raw(node->public_key, coin->address_type, address_raw);
+		ecdsa_get_address_raw(public_key, coin->address_type, address_raw);
 	}
 	layoutEncryptMessage(msg->message.bytes, msg->message.size, signing);
 	if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
