@@ -1,9 +1,9 @@
-[submodule "bwallet-commom"]
-	path = bwallet-commom
-	url = https://github.com/BWallet/bwallet-commom.git
 [submodule "bwallet-qrenc"]
 	path = bwallet-qrenc
 	url = https://github.com/BWallet/bwallet-qrenc.git
 [submodule "bwallet-crypto"]
 	path = bwallet-crypto
 	url = https://github.com/BWallet/bwallet-crypto.git
+[submodule "bwallet-common"]
+	path = bwallet-common
+	url = git://github.com/BWallet/bwallet-common.git
