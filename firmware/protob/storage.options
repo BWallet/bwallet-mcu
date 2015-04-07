@@ -3,3 +3,4 @@ Storage.pin		max_size:10
 Storage.language	max_size:17
 Storage.label		max_size:33
 Storage.homescreen	max_size:1024
+Storage.label_list  max_count:6

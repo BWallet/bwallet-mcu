@@ -14,6 +14,9 @@ const char EstimateTxSize_coin_name_default[17] = "Bitcoin";
 const char SignTx_coin_name_default[17] = "Bitcoin";
 const char SimpleSignTx_coin_name_default[17] = "Bitcoin";
 const uint32_t TestScreen_delay_time_default = 1u;
+const char AccountLabels_coin_name_default[17] = "Bitcoin";
+const char GetAccountLabels_coin_name_default[17] = "Bitcoin";
+const char SetAccountLabel_coin_name_default[17] = "Bitcoin";
 
 
 const pb_field_t Initialize_fields[2] = {
@@ -300,6 +303,20 @@ const pb_field_t TxAck_fields[2] = {
     PB_LAST_FIELD
 };
 
+const pb_field_t SignIdentity_fields[4] = {
+    PB_FIELD2(  1, MESSAGE , OPTIONAL, STATIC  , FIRST, SignIdentity, identity, identity, &IdentityType_fields),
+    PB_FIELD2(  2, BYTES   , OPTIONAL, STATIC  , OTHER, SignIdentity, challenge_hidden, identity, 0),
+    PB_FIELD2(  3, STRING  , OPTIONAL, STATIC  , OTHER, SignIdentity, challenge_visual, challenge_hidden, 0),
+    PB_LAST_FIELD
+};
+
+const pb_field_t SignedIdentity_fields[4] = {
+    PB_FIELD2(  1, STRING  , OPTIONAL, STATIC  , FIRST, SignedIdentity, address, address, 0),
+    PB_FIELD2(  2, BYTES   , OPTIONAL, STATIC  , OTHER, SignedIdentity, public_key, address, 0),
+    PB_FIELD2(  3, BYTES   , OPTIONAL, STATIC  , OTHER, SignedIdentity, signature, public_key, 0),
+    PB_LAST_FIELD
+};
+
 const pb_field_t FirmwareErase_fields[1] = {
     PB_LAST_FIELD
 };
@@ -311,6 +328,26 @@ const pb_field_t FirmwareUpload_fields[2] = {
 
 const pb_field_t TestScreen_fields[2] = {
     PB_FIELD2(  1, UINT32  , REQUIRED, STATIC  , FIRST, TestScreen, delay_time, delay_time, &TestScreen_delay_time_default),
+    PB_LAST_FIELD
+};
+
+const pb_field_t AccountLabels_fields[3] = {
+    PB_FIELD2(  1, STRING  , OPTIONAL, STATIC  , FIRST, AccountLabels, coin_name, coin_name, &AccountLabels_coin_name_default),
+    PB_FIELD2(  2, MESSAGE , REPEATED, STATIC  , OTHER, AccountLabels, labels, coin_name, &AccountLabelType_fields),
+    PB_LAST_FIELD
+};
+
+const pb_field_t GetAccountLabels_fields[4] = {
+    PB_FIELD2(  1, STRING  , OPTIONAL, STATIC  , FIRST, GetAccountLabels, coin_name, coin_name, &GetAccountLabels_coin_name_default),
+    PB_FIELD2(  2, BOOL    , OPTIONAL, STATIC  , OTHER, GetAccountLabels, all, coin_name, 0),
+    PB_FIELD2(  3, UINT32  , OPTIONAL, STATIC  , OTHER, GetAccountLabels, index, all, 0),
+    PB_LAST_FIELD
+};
+
+const pb_field_t SetAccountLabel_fields[4] = {
+    PB_FIELD2(  1, STRING  , OPTIONAL, STATIC  , FIRST, SetAccountLabel, coin_name, coin_name, &SetAccountLabel_coin_name_default),
+    PB_FIELD2(  2, UINT32  , OPTIONAL, STATIC  , OTHER, SetAccountLabel, index, coin_name, 0),
+    PB_FIELD2(  3, STRING  , OPTIONAL, STATIC  , OTHER, SetAccountLabel, label, index, 0),
     PB_LAST_FIELD
 };
 
@@ -358,7 +395,7 @@ const pb_field_t DebugLinkLog_fields[4] = {
  * numbers or field sizes that are larger than what can fit in 8 or 16 bit
  * field descriptors.
  */
-STATIC_ASSERT((pb_membersize(Features, coins[0]) < 65536 && pb_membersize(PublicKey, node) < 65536 && pb_membersize(GetAddress, multisig) < 65536 && pb_membersize(LoadDevice, node) < 65536 && pb_membersize(SimpleSignTx, inputs[0]) < 65536 && pb_membersize(SimpleSignTx, outputs[0]) < 65536 && pb_membersize(SimpleSignTx, transactions[0]) < 65536 && pb_membersize(TxRequest, details) < 65536 && pb_membersize(TxRequest, serialized) < 65536 && pb_membersize(TxAck, tx) < 65536 && pb_membersize(DebugLinkState, node) < 65536), YOU_MUST_DEFINE_PB_FIELD_32BIT_FOR_MESSAGES_Initialize_Features_ClearSession_ApplySettings_ChangePin_Ping_Success_Failure_ButtonRequest_ButtonAck_PinMatrixRequest_PinMatrixAck_Cancel_PassphraseRequest_PassphraseAck_GetEntropy_Entropy_GetPublicKey_PublicKey_GetAddress_Address_WipeDevice_LoadDevice_ResetDevice_EntropyRequest_EntropyAck_RecoveryDevice_WordRequest_WordAck_SignMessage_VerifyMessage_MessageSignature_EncryptMessage_EncryptedMessage_DecryptMessage_DecryptedMessage_CipherKeyValue_CipheredKeyValue_EstimateTxSize_TxSize_SignTx_SimpleSignTx_TxRequest_TxAck_FirmwareErase_FirmwareUpload_TestScreen_DebugLinkDecision_DebugLinkGetState_DebugLinkState_DebugLinkStop_DebugLinkLog)
+STATIC_ASSERT((pb_membersize(Features, coins[0]) < 65536 && pb_membersize(PublicKey, node) < 65536 && pb_membersize(GetAddress, multisig) < 65536 && pb_membersize(LoadDevice, node) < 65536 && pb_membersize(SimpleSignTx, inputs[0]) < 65536 && pb_membersize(SimpleSignTx, outputs[0]) < 65536 && pb_membersize(SimpleSignTx, transactions[0]) < 65536 && pb_membersize(TxRequest, details) < 65536 && pb_membersize(TxRequest, serialized) < 65536 && pb_membersize(TxAck, tx) < 65536 && pb_membersize(SignIdentity, identity) < 65536 && pb_membersize(AccountLabels, labels[0]) < 65536 && pb_membersize(DebugLinkState, node) < 65536), YOU_MUST_DEFINE_PB_FIELD_32BIT_FOR_MESSAGES_Initialize_Features_ClearSession_ApplySettings_ChangePin_Ping_Success_Failure_ButtonRequest_ButtonAck_PinMatrixRequest_PinMatrixAck_Cancel_PassphraseRequest_PassphraseAck_GetEntropy_Entropy_GetPublicKey_PublicKey_GetAddress_Address_WipeDevice_LoadDevice_ResetDevice_EntropyRequest_EntropyAck_RecoveryDevice_WordRequest_WordAck_SignMessage_VerifyMessage_MessageSignature_EncryptMessage_EncryptedMessage_DecryptMessage_DecryptedMessage_CipherKeyValue_CipheredKeyValue_EstimateTxSize_TxSize_SignTx_SimpleSignTx_TxRequest_TxAck_SignIdentity_SignedIdentity_FirmwareErase_FirmwareUpload_TestScreen_AccountLabels_GetAccountLabels_SetAccountLabel_DebugLinkDecision_DebugLinkGetState_DebugLinkState_DebugLinkStop_DebugLinkLog)
 #endif
 
 #if !defined(PB_FIELD_16BIT) && !defined(PB_FIELD_32BIT)

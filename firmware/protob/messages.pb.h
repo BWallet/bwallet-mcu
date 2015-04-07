@@ -35,7 +35,6 @@ typedef enum _MessageType {
     MessageType_MessageType_TxRequest = 21,
     MessageType_MessageType_TxAck = 22,
     MessageType_MessageType_CipherKeyValue = 23,
-    MessageType_MessageType_CipheredKeyValue = 48,
     MessageType_MessageType_ClearSession = 24,
     MessageType_MessageType_ApplySettings = 25,
     MessageType_MessageType_ButtonRequest = 26,
@@ -47,10 +46,6 @@ typedef enum _MessageType {
     MessageType_MessageType_SignMessage = 38,
     MessageType_MessageType_VerifyMessage = 39,
     MessageType_MessageType_MessageSignature = 40,
-    MessageType_MessageType_EncryptMessage = 49,
-    MessageType_MessageType_EncryptedMessage = 50,
-    MessageType_MessageType_DecryptMessage = 51,
-    MessageType_MessageType_DecryptedMessage = 52,
     MessageType_MessageType_PassphraseRequest = 41,
     MessageType_MessageType_PassphraseAck = 42,
     MessageType_MessageType_EstimateTxSize = 43,
@@ -58,6 +53,16 @@ typedef enum _MessageType {
     MessageType_MessageType_RecoveryDevice = 45,
     MessageType_MessageType_WordRequest = 46,
     MessageType_MessageType_WordAck = 47,
+    MessageType_MessageType_CipheredKeyValue = 48,
+    MessageType_MessageType_EncryptMessage = 49,
+    MessageType_MessageType_EncryptedMessage = 50,
+    MessageType_MessageType_DecryptMessage = 51,
+    MessageType_MessageType_DecryptedMessage = 52,
+    MessageType_MessageType_SignIdentity = 53,
+    MessageType_MessageType_SignedIdentity = 54,
+    MessageType_MessageType_AccountLabels = 96,
+    MessageType_MessageType_GetAccountLabels = 97,
+    MessageType_MessageType_SetAccountLabel = 98,
     MessageType_MessageType_TestScreen = 99,
     MessageType_MessageType_DebugLinkDecision = 100,
     MessageType_MessageType_DebugLinkGetState = 101,
@@ -106,6 +111,13 @@ typedef struct _WipeDevice {
 typedef struct _WordRequest {
     uint8_t dummy_field;
 } WordRequest;
+
+typedef struct _AccountLabels {
+    bool has_coin_name;
+    char coin_name[17];
+    size_t labels_count;
+    AccountLabelType labels[32];
+} AccountLabels;
 
 typedef struct _Address {
     char address[36];
@@ -365,7 +377,7 @@ typedef struct _Features {
     bool has_label;
     char label[33];
     size_t coins_count;
-    CoinType coins[5];
+    CoinType coins[6];
     bool has_initialized;
     bool initialized;
     bool has_revision;
@@ -384,6 +396,15 @@ typedef struct {
 typedef struct _FirmwareUpload {
     FirmwareUpload_payload_t payload;
 } FirmwareUpload;
+
+typedef struct _GetAccountLabels {
+    bool has_coin_name;
+    char coin_name[17];
+    bool has_all;
+    bool all;
+    bool has_index;
+    uint32_t index;
+} GetAccountLabels;
 
 typedef struct _GetAddress {
     size_t address_n_count;
@@ -498,6 +519,29 @@ typedef struct _ResetDevice {
     char label[33];
 } ResetDevice;
 
+typedef struct _SetAccountLabel {
+    bool has_coin_name;
+    char coin_name[17];
+    bool has_index;
+    uint32_t index;
+    bool has_label;
+    char label[20];
+} SetAccountLabel;
+
+typedef struct {
+    size_t size;
+    uint8_t bytes[64];
+} SignIdentity_challenge_hidden_t;
+
+typedef struct _SignIdentity {
+    bool has_identity;
+    IdentityType identity;
+    bool has_challenge_hidden;
+    SignIdentity_challenge_hidden_t challenge_hidden;
+    bool has_challenge_visual;
+    char challenge_visual[64];
+} SignIdentity;
+
 typedef struct {
     size_t size;
     uint8_t bytes[1024];
@@ -517,6 +561,25 @@ typedef struct _SignTx {
     bool has_coin_name;
     char coin_name[17];
 } SignTx;
+
+typedef struct {
+    size_t size;
+    uint8_t bytes[33];
+} SignedIdentity_public_key_t;
+
+typedef struct {
+    size_t size;
+    uint8_t bytes[65];
+} SignedIdentity_signature_t;
+
+typedef struct _SignedIdentity {
+    bool has_address;
+    char address[36];
+    bool has_public_key;
+    SignedIdentity_public_key_t public_key;
+    bool has_signature;
+    SignedIdentity_signature_t signature;
+} SignedIdentity;
 
 typedef struct _SimpleSignTx {
     size_t inputs_count;
@@ -592,10 +655,13 @@ extern const char EstimateTxSize_coin_name_default[17];
 extern const char SignTx_coin_name_default[17];
 extern const char SimpleSignTx_coin_name_default[17];
 extern const uint32_t TestScreen_delay_time_default;
+extern const char AccountLabels_coin_name_default[17];
+extern const char GetAccountLabels_coin_name_default[17];
+extern const char SetAccountLabel_coin_name_default[17];
 
 /* Initializer values for message structs */
 #define Initialize_init_default                  {{{NULL}, NULL}}
-#define Features_init_default                    {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
+#define Features_init_default                    {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
 #define ClearSession_init_default                {0}
 #define ApplySettings_init_default               {false, "", false, "", false, 0, false, {0, {0}}}
 #define ChangePin_init_default                   {false, 0}
@@ -638,16 +704,21 @@ extern const uint32_t TestScreen_delay_time_default;
 #define SimpleSignTx_init_default                {0, {}, 0, {}, 0, {}, false, "Bitcoin"}
 #define TxRequest_init_default                   {false, (RequestType)0, false, TxRequestDetailsType_init_default, false, TxRequestSerializedType_init_default}
 #define TxAck_init_default                       {false, TransactionType_init_default}
+#define SignIdentity_init_default                {false, IdentityType_init_default, false, {0, {0}}, false, ""}
+#define SignedIdentity_init_default              {false, "", false, {0, {0}}, false, {0, {0}}}
 #define FirmwareErase_init_default               {0}
 #define FirmwareUpload_init_default              {{0, {0}}}
 #define TestScreen_init_default                  {1u}
+#define AccountLabels_init_default               {false, "Bitcoin", 0, {AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default}}
+#define GetAccountLabels_init_default            {false, "Bitcoin", false, 0, false, 0}
+#define SetAccountLabel_init_default             {false, "Bitcoin", false, 0, false, ""}
 #define DebugLinkDecision_init_default           {0}
 #define DebugLinkGetState_init_default           {0}
 #define DebugLinkState_init_default              {false, {0, {0}}, false, "", false, "", false, "", false, HDNodeType_init_default, false, 0, false, "", false, {0, {0}}, false, "", false, 0}
 #define DebugLinkStop_init_default               {0}
 #define DebugLinkLog_init_default                {false, 0, false, "", false, ""}
 #define Initialize_init_zero                     {{{NULL}, NULL}}
-#define Features_init_zero                       {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
+#define Features_init_zero                       {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0}
 #define ClearSession_init_zero                   {0}
 #define ApplySettings_init_zero                  {false, "", false, "", false, 0, false, {0, {0}}}
 #define ChangePin_init_zero                      {false, 0}
@@ -690,9 +761,14 @@ extern const uint32_t TestScreen_delay_time_default;
 #define SimpleSignTx_init_zero                   {0, {}, 0, {}, 0, {}, false, ""}
 #define TxRequest_init_zero                      {false, (RequestType)0, false, TxRequestDetailsType_init_zero, false, TxRequestSerializedType_init_zero}
 #define TxAck_init_zero                          {false, TransactionType_init_zero}
+#define SignIdentity_init_zero                   {false, IdentityType_init_zero, false, {0, {0}}, false, ""}
+#define SignedIdentity_init_zero                 {false, "", false, {0, {0}}, false, {0, {0}}}
 #define FirmwareErase_init_zero                  {0}
 #define FirmwareUpload_init_zero                 {{0, {0}}}
 #define TestScreen_init_zero                     {0}
+#define AccountLabels_init_zero                  {false, "", 0, {AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero}}
+#define GetAccountLabels_init_zero               {false, "", false, 0, false, 0}
+#define SetAccountLabel_init_zero                {false, "", false, 0, false, ""}
 #define DebugLinkDecision_init_zero              {0}
 #define DebugLinkGetState_init_zero              {0}
 #define DebugLinkState_init_zero                 {false, {0, {0}}, false, "", false, "", false, "", false, HDNodeType_init_zero, false, 0, false, "", false, {0, {0}}, false, "", false, 0}
@@ -700,6 +776,8 @@ extern const uint32_t TestScreen_delay_time_default;
 #define DebugLinkLog_init_zero                   {false, 0, false, "", false, ""}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define AccountLabels_coin_name_tag              1
+#define AccountLabels_labels_tag                 2
 #define Address_address_tag                      1
 #define ApplySettings_language_tag               1
 #define ApplySettings_label_tag                  2
@@ -766,6 +844,9 @@ extern const uint32_t TestScreen_delay_time_default;
 #define Features_bootloader_hash_tag             14
 #define Features_imported_tag                    15
 #define FirmwareUpload_payload_tag               1
+#define GetAccountLabels_coin_name_tag           1
+#define GetAccountLabels_all_tag                 2
+#define GetAccountLabels_index_tag               3
 #define GetAddress_address_n_tag                 1
 #define GetAddress_coin_name_tag                 2
 #define GetAddress_show_display_tag              3
@@ -803,12 +884,21 @@ extern const uint32_t TestScreen_delay_time_default;
 #define ResetDevice_pin_protection_tag           4
 #define ResetDevice_language_tag                 5
 #define ResetDevice_label_tag                    6
+#define SetAccountLabel_coin_name_tag            1
+#define SetAccountLabel_index_tag                2
+#define SetAccountLabel_label_tag                3
+#define SignIdentity_identity_tag                1
+#define SignIdentity_challenge_hidden_tag        2
+#define SignIdentity_challenge_visual_tag        3
 #define SignMessage_address_n_tag                1
 #define SignMessage_message_tag                  2
 #define SignMessage_coin_name_tag                3
 #define SignTx_outputs_count_tag                 1
 #define SignTx_inputs_count_tag                  2
 #define SignTx_coin_name_tag                     3
+#define SignedIdentity_address_tag               1
+#define SignedIdentity_public_key_tag            2
+#define SignedIdentity_signature_tag             3
 #define SimpleSignTx_inputs_tag                  1
 #define SimpleSignTx_outputs_tag                 2
 #define SimpleSignTx_transactions_tag            3
@@ -870,9 +960,14 @@ extern const pb_field_t SignTx_fields[4];
 extern const pb_field_t SimpleSignTx_fields[5];
 extern const pb_field_t TxRequest_fields[4];
 extern const pb_field_t TxAck_fields[2];
+extern const pb_field_t SignIdentity_fields[4];
+extern const pb_field_t SignedIdentity_fields[4];
 extern const pb_field_t FirmwareErase_fields[1];
 extern const pb_field_t FirmwareUpload_fields[2];
 extern const pb_field_t TestScreen_fields[2];
+extern const pb_field_t AccountLabels_fields[3];
+extern const pb_field_t GetAccountLabels_fields[4];
+extern const pb_field_t SetAccountLabel_fields[4];
 extern const pb_field_t DebugLinkDecision_fields[2];
 extern const pb_field_t DebugLinkGetState_fields[1];
 extern const pb_field_t DebugLinkState_fields[11];
@@ -880,7 +975,7 @@ extern const pb_field_t DebugLinkStop_fields[1];
 extern const pb_field_t DebugLinkLog_fields[4];
 
 /* Maximum encoded size of messages (where known) */
-#define Features_size                            (230 + 5*CoinType_size)
+#define Features_size                            (236 + 6*CoinType_size)
 #define ClearSession_size                        0
 #define ApplySettings_size                       1083
 #define ChangePin_size                           2
@@ -923,9 +1018,14 @@ extern const pb_field_t DebugLinkLog_fields[4];
 #define SimpleSignTx_size                        (19 + 0*TxInputType_size + 0*TxOutputType_size + 0*TransactionType_size)
 #define TxRequest_size                           (18 + TxRequestDetailsType_size + TxRequestSerializedType_size)
 #define TxAck_size                               (6 + TransactionType_size)
+#define SignIdentity_size                        (138 + IdentityType_size)
+#define SignedIdentity_size                      140
 #define FirmwareErase_size                       0
 #define FirmwareUpload_size                      2
 #define TestScreen_size                          6
+#define AccountLabels_size                       (211 + 32*AccountLabelType_size)
+#define GetAccountLabels_size                    27
+#define SetAccountLabel_size                     47
 #define DebugLinkDecision_size                   2
 #define DebugLinkGetState_size                   0
 #define DebugLinkState_size                      (1468 + HDNodeType_size)

@@ -117,7 +117,7 @@ void fsm_msgInitialize(Initialize *msg)
 	recovery_abort();
 	signing_abort();
 	RESP_INIT(Features);
-	resp->has_vendor = true;         strlcpy(resp->vendor, "bitcoinbwallet.com", sizeof(resp->vendor));
+	resp->has_vendor = true;         strlcpy(resp->vendor, "bitcointrezor.com", sizeof(resp->vendor));
 	resp->has_major_version = true;  resp->major_version = VERSION_MAJOR;
 	resp->has_minor_version = true;  resp->minor_version = VERSION_MINOR;
 	resp->has_patch_version = true;  resp->patch_version = VERSION_PATCH;
@@ -870,6 +870,148 @@ void fsm_msgWordAck(WordAck *msg)
 	recovery_word(msg->word);
 }
 
+const char *fsm_msgStrIndex(uint32_t label_index)
+{
+	static char str_index[16];
+    char temp;
+    int	i , j, index = 0; 
+	uint32_t value_index;
+
+	value_index = label_index;
+	do{
+		str_index[index++] = '0' + label_index % 10;
+	}while((label_index /= 10) > 0);
+
+	str_index[index] = '\0';
+
+	for(i = 0, j = index-1; i < j; i++, j--){
+		temp = str_index[i];
+		str_index[i] = str_index[j];
+		str_index[j] = temp;
+	}
+
+	if(value_index == 11 || value_index == 12 || value_index == 13) {
+		strcat(str_index, "th");
+	} else {
+		if((str_index[index - 1] == '1') || 
+				(str_index[index - 1] == '2') || 
+				(str_index[index - 1] == '3')) {
+			if(str_index[index - 1] == '1')
+				strcat(str_index, "st");
+			if(str_index[index - 1] == '2')
+				strcat(str_index, "nd");
+			if(str_index[index - 1] == '3')
+				strcat(str_index, "rd");
+		} else
+			strcat(str_index, "th");
+	}
+
+	return str_index;
+}
+
+void fsm_msgSetAccountLabel(SetAccountLabel *msg)
+{
+	if (!msg->coin_name) {
+		fsm_sendFailure(FailureType_Failure_SyntaxError, "No coin name provided");
+		return;
+	}
+
+	const uint32_t coin_index = coinIndex(msg->coin_name);
+	if(coin_index > COINS_COUNT) { 
+		fsm_sendFailure(FailureType_Failure_Other, "Invalid coin name");
+		return ;
+	}    
+
+	const uint32_t labels_count = storage_getAccountCount(coin_index);
+	const uint32_t find_index = storage_findAccountLabel(msg->index, coin_index);
+	if((labels_count >= LABEL_COUNT) && (find_index > LABEL_COUNT)) {
+		fsm_sendFailure(FailureType_Failure_Other, "Label cannot be more than 32");
+		return ;
+	}
+
+	const char *str_index = fsm_msgStrIndex(msg->index);
+	char zhstr_index[16];
+	strncpy(zhstr_index, str_index, (strlen(str_index) - 2));
+
+	if(msg->has_label) {
+		switch(storage_getLang()) {
+			case CHINESE :
+				layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, "设置第", zhstr_index, "账户名称为#:#", msg->label);
+				break;
+			default :
+				layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you want to set ", str_index, "account label to", msg->label, "?", NULL);
+				break;
+		}
+		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
+			fsm_sendFailure(FailureType_Failure_ActionCancelled, "Account label settings cancelled");
+			layoutHome();
+			return;
+		}
+	}    
+
+	if (!msg->has_label && msg->has_index) {
+		switch(storage_getLang()) {
+			case CHINESE :
+				layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, "删除第", zhstr_index, "个账户#:#", msg->label);
+				break;
+			default :
+				layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you want to delete", str_index, msg->label, "account label to", "?", NULL);
+				break;
+		}
+		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
+			fsm_sendFailure(FailureType_Failure_ActionCancelled, "Account label delete cancelled");
+			layoutHome();
+			return;
+		}
+	}    
+
+	if ((!msg->has_label && !msg->has_index) || (msg->has_label && !msg->has_index)) {
+		fsm_sendFailure(FailureType_Failure_SyntaxError, "No setting provided");
+		return;
+	}
+
+	if (!protectPin(true)) {
+		layoutHome();
+		return;
+	}
+
+	if(msg->has_label && msg->has_index) {
+		storage_setAccountLabel(msg->label, msg->index, coin_index, labels_count, find_index);
+	}
+
+	if(!msg->has_label && msg->has_index) {
+		storage_delAccountLabel(coin_index, labels_count, find_index);
+	}
+
+	storage_commit();
+	fsm_sendSuccess("Settings applied");
+	layoutHome();
+}
+
+void fsm_msgGetAccountLabels(GetAccountLabels *msg)
+{
+	if (!msg->coin_name) {
+		fsm_sendFailure(FailureType_Failure_SyntaxError, "No coin name provided");
+		return;
+	}
+	const uint32_t coin_index = coinIndex(msg->coin_name);
+	if(coin_index > COINS_COUNT) {
+		fsm_sendFailure(FailureType_Failure_Other, "Invalid coin name");
+		return ;
+	}
+	RESP_INIT(AccountLabels);
+	resp->has_coin_name = true;
+	strlcpy(resp->coin_name, msg->coin_name, sizeof(msg->coin_name));
+
+	storage_getAccountLabels(msg->all, msg->index, resp, coin_index);
+
+	resp->labels_count = storage_getAccountCount(coin_index);
+
+	msg_write(MessageType_MessageType_AccountLabels, resp);
+	layoutHome();
+
+}
+
 void fsm_msgTestScreen(TestScreen *msg)
 {
 	uint32_t delay_time = msg->delay_time * 20000000;
@@ -877,6 +1019,7 @@ void fsm_msgTestScreen(TestScreen *msg)
 	while(delay_time--)
 		__asm__("nop");
 	layoutHome();
+	fsm_sendSuccess("Test finish!");
 }
 
 #if DEBUG_LINK

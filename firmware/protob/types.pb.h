@@ -63,6 +63,11 @@ typedef enum _PinMatrixRequestType {
 } PinMatrixRequestType;
 
 /* Struct definitions */
+typedef struct _AccountLabelType {
+    uint32_t index;
+    char label[20];
+} AccountLabelType;
+
 typedef struct _CoinType {
     bool has_coin_name;
     char coin_name[17];
@@ -101,6 +106,21 @@ typedef struct _HDNodeType {
     bool has_public_key;
     HDNodeType_public_key_t public_key;
 } HDNodeType;
+
+typedef struct _IdentityType {
+    bool has_proto;
+    char proto[9];
+    bool has_user;
+    char user[64];
+    bool has_host;
+    char host[64];
+    bool has_port;
+    char port[6];
+    bool has_path;
+    char path[256];
+    bool has_index;
+    uint32_t index;
+} IdentityType;
 
 typedef struct {
     size_t size;
@@ -142,6 +162,12 @@ typedef struct _TxRequestSerializedType {
     bool has_serialized_tx;
     TxRequestSerializedType_serialized_tx_t serialized_tx;
 } TxRequestSerializedType;
+
+typedef struct _AccountLabelsType {
+    uint32_t count;
+    size_t labels_count;
+    AccountLabelType labels[32];
+} AccountLabelsType;
 
 typedef struct _HDNodePathType {
     HDNodeType node;
@@ -234,6 +260,7 @@ extern const uint32_t CoinType_address_type_default;
 extern const uint32_t CoinType_address_type_p2sh_default;
 extern const uint32_t TxInputType_sequence_default;
 extern const InputScriptType TxInputType_script_type_default;
+extern const uint32_t IdentityType_index_default;
 
 /* Initializer values for message structs */
 #define HDNodeType_init_default                  {0, 0, 0, {0, {0}}, false, {0, {0}}, false, {0, {0}}}
@@ -246,6 +273,9 @@ extern const InputScriptType TxInputType_script_type_default;
 #define TransactionType_init_default             {false, 0, 0, {TxInputType_init_default}, 0, {TxOutputBinType_init_default}, false, 0, 0, {TxOutputType_init_default}, false, 0, false, 0}
 #define TxRequestDetailsType_init_default        {false, 0, false, {0, {0}}}
 #define TxRequestSerializedType_init_default     {false, 0, false, {0, {0}}, false, {0, {0}}}
+#define IdentityType_init_default                {false, "", false, "", false, "", false, "", false, "", false, 0u}
+#define AccountLabelsType_init_default           {0, 0, {AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default, AccountLabelType_init_default}}
+#define AccountLabelType_init_default            {0, ""}
 #define HDNodeType_init_zero                     {0, 0, 0, {0, {0}}, false, {0, {0}}, false, {0, {0}}}
 #define HDNodePathType_init_zero                 {HDNodeType_init_zero, 0, {0, 0, 0, 0, 0, 0, 0, 0}}
 #define CoinType_init_zero                       {false, "", false, "", false, 0, false, 0, false, 0}
@@ -256,8 +286,13 @@ extern const InputScriptType TxInputType_script_type_default;
 #define TransactionType_init_zero                {false, 0, 0, {TxInputType_init_zero}, 0, {TxOutputBinType_init_zero}, false, 0, 0, {TxOutputType_init_zero}, false, 0, false, 0}
 #define TxRequestDetailsType_init_zero           {false, 0, false, {0, {0}}}
 #define TxRequestSerializedType_init_zero        {false, 0, false, {0, {0}}, false, {0, {0}}}
+#define IdentityType_init_zero                   {false, "", false, "", false, "", false, "", false, "", false, 0}
+#define AccountLabelsType_init_zero              {0, 0, {AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero, AccountLabelType_init_zero}}
+#define AccountLabelType_init_zero               {0, ""}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define AccountLabelType_index_tag               1
+#define AccountLabelType_label_tag               2
 #define CoinType_coin_name_tag                   1
 #define CoinType_coin_shortcut_tag               2
 #define CoinType_address_type_tag                3
@@ -269,6 +304,12 @@ extern const InputScriptType TxInputType_script_type_default;
 #define HDNodeType_chain_code_tag                4
 #define HDNodeType_private_key_tag               5
 #define HDNodeType_public_key_tag                6
+#define IdentityType_proto_tag                   1
+#define IdentityType_user_tag                    2
+#define IdentityType_host_tag                    3
+#define IdentityType_port_tag                    4
+#define IdentityType_path_tag                    5
+#define IdentityType_index_tag                   6
 #define TxOutputBinType_amount_tag               1
 #define TxOutputBinType_script_pubkey_tag        2
 #define TxRequestDetailsType_request_index_tag   1
@@ -276,6 +317,8 @@ extern const InputScriptType TxInputType_script_type_default;
 #define TxRequestSerializedType_signature_index_tag 1
 #define TxRequestSerializedType_signature_tag    2
 #define TxRequestSerializedType_serialized_tx_tag 3
+#define AccountLabelsType_count_tag              1
+#define AccountLabelsType_labels_tag             2
 #define HDNodePathType_node_tag                  1
 #define HDNodePathType_address_n_tag             2
 #define MultisigRedeemScriptType_pubkeys_tag     1
@@ -317,6 +360,9 @@ extern const pb_field_t TxOutputBinType_fields[3];
 extern const pb_field_t TransactionType_fields[8];
 extern const pb_field_t TxRequestDetailsType_fields[3];
 extern const pb_field_t TxRequestSerializedType_fields[4];
+extern const pb_field_t IdentityType_fields[7];
+extern const pb_field_t AccountLabelsType_fields[3];
+extern const pb_field_t AccountLabelType_fields[3];
 
 /* Maximum encoded size of messages (where known) */
 #define HDNodeType_size                          121
@@ -329,6 +375,9 @@ extern const pb_field_t TxRequestSerializedType_fields[4];
 #define TransactionType_size                     9993
 #define TxRequestDetailsType_size                40
 #define TxRequestSerializedType_size             2132
+#define IdentityType_size                        416
+#define AccountLabelsType_size                   966
+#define AccountLabelType_size                    28
 
 #ifdef __cplusplus
 } /* extern "C" */

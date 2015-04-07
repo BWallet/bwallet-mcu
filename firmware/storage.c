@@ -39,6 +39,7 @@
 #include "debug.h"
 #include "protect.h"
 #include "layout2.h"
+#include "coins.h"
 
 Storage storage;
 
@@ -195,6 +196,61 @@ void storage_loadDevice(LoadDevice *msg)
 	}
 }
 
+uint32_t storage_findAccountLabel(const uint32_t index, const uint32_t coin_index)
+{
+	uint32_t find_index, count;
+	count = storage.label_list[coin_index].count;
+	for(find_index = 0; find_index < count; find_index++) {
+		if(storage.label_list[coin_index].labels[find_index].index == index)
+			return find_index;
+	}   
+	return INVAILD_INDEX; 
+}
+
+void storage_setAccountLabel(const char *label, const uint32_t index, const uint32_t coin_index, const uint32_t count, const uint32_t find_index)
+{
+	if(!label && (coin_index > COINS_COUNT)) return;  
+
+	if((find_index > LABEL_COUNT) && (storage.label_list[coin_index].count <= LABEL_COUNT)) {
+		storage.label_list[coin_index].labels[count].index = index;
+		strlcpy(storage.label_list[coin_index].labels[count].label, label, 
+				sizeof(storage.label_list[coin_index].labels[count].label));
+		storage.label_list[coin_index].count += 1;
+	} else if(find_index < LABEL_COUNT){
+		memset(storage.label_list[coin_index].labels[find_index].label, 0,  
+				sizeof(storage.label_list[coin_index].labels[find_index].label));
+		strlcpy(storage.label_list[coin_index].labels[find_index].label, label,
+				sizeof(storage.label_list[coin_index].labels[find_index].label));
+	} else
+		return;
+}
+
+void storage_delAccountLabel(const uint32_t coin_index, const uint32_t count, const uint32_t find_index)
+{
+	uint32_t del_index;
+	if(coin_index > COINS_COUNT) return;
+
+	if(find_index > LABEL_COUNT )
+		return;
+	else {
+		if(find_index == (count - 1)) {
+			storage.label_list[coin_index].labels[find_index].index = 0;
+			memset(storage.label_list[coin_index].labels[find_index].label, 0,
+					sizeof(storage.label_list[coin_index].labels[find_index].label));
+		} else {
+			for(del_index = find_index; del_index < count - 1; del_index++) {
+				storage.label_list[coin_index].labels[del_index].index =
+					storage.label_list[coin_index].labels[del_index + 1].index;
+				memset(storage.label_list[coin_index].labels[del_index].label, 0,
+						sizeof(storage.label_list[coin_index].labels[del_index].label));
+				strlcpy(storage.label_list[coin_index].labels[del_index].label,
+						storage.label_list[coin_index].labels[del_index + 1].label,
+						sizeof(storage.label_list[coin_index].labels[del_index].label));
+			}
+		}
+		storage.label_list[coin_index].count -= 1;
+	}
+}
 void storage_setLabel(const char *label)
 {
 	if (!label) return;
@@ -249,6 +305,24 @@ void get_root_node_callback(uint32_t iter, uint32_t total)
 			layoutProgress("Waking up", 1000 * iter / total);
 			break;
 	}
+}
+
+uint32_t storage_getAccountCount(const uint32_t coin_index)
+{
+	if(coin_index > COINS_COUNT) return 0;
+
+	return storage.label_list[coin_index].count;
+}
+
+void storage_getAccountLabels(bool all, const uint32_t index, AccountLabels *coin_labels, const uint32_t coin_index) 
+{
+	if(all) {
+		memcpy(coin_labels->labels, &storage.label_list[coin_index].labels, 
+				sizeof(storage.label_list[coin_index].labels));
+	} else {
+		memcpy(coin_labels->labels, &storage.label_list[coin_index].labels[index], 
+				sizeof(storage.label_list[coin_index].labels[index]));
+	}   
 }
 
 bool storage_getRootNode(HDNode *node)

@@ -25,6 +25,9 @@
 #include "messages.pb.h"
 #include "bip32.h"
 
+#define INVAILD_INDEX 100
+#define LABEL_COUNT 32
+
 void storage_init(void);
 void storage_reset_uuid(void);
 void storage_reset(void);
@@ -49,6 +52,12 @@ void storage_setHomescreen(const uint8_t *data, uint32_t size);
 
 void session_cachePassphrase(const char *passphrase);
 bool session_isPassphraseCached(void);
+
+void storage_getAccountLabels(bool all, const uint32_t index, AccountLabels *coin_labels, const uint32_t coin_index);
+void storage_setAccountLabel(const char *label, const uint32_t index, const uint32_t coin_index, const uint32_t count, const uint32_t find_index);
+void storage_delAccountLabel(const uint32_t coin_index, const uint32_t count, const uint32_t find_index);
+uint32_t storage_getAccountCount(const uint32_t coin_index);
+uint32_t storage_findAccountLabel(const uint32_t index, const uint32_t coin_index);
 
 bool storage_isPinCorrect(const char *pin);
 bool storage_hasPin(void);

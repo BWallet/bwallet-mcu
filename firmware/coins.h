@@ -23,11 +23,13 @@
 #include "types.pb.h"
 
 #define COINS_COUNT 5
+#define INVAILD_COINS 100
 
 extern const CoinType coins[COINS_COUNT];
 
 const CoinType *coinByShortcut(const char *shortcut);
 const CoinType *coinByName(const char *name);
 const CoinType *coinByAddressType(uint8_t address_type);
+uint32_t coinIndex(const char *name);
 
 #endif

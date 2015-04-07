@@ -62,3 +62,19 @@ const CoinType *coinByAddressType(uint8_t address_type)
 	}
 	return 0;
 }
+
+uint32_t coinIndex(const char *name)
+{
+	if(!name) return INVAILD_COINS;
+	int i;
+	for (i = 0; i < COINS_COUNT; i++) {
+		if (strcmp(name, coins[i].coin_name) == 0) {
+			return i;
+
+		}   
+
+	}   
+	return INVAILD_COINS;   
+
+}
+

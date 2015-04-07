@@ -5,7 +5,7 @@
 
 
 
-const pb_field_t Storage_fields[11] = {
+const pb_field_t Storage_fields[12] = {
     PB_FIELD2(  1, UINT32  , REQUIRED, STATIC  , FIRST, Storage, version, version, 0),
     PB_FIELD2(  2, MESSAGE , OPTIONAL, STATIC  , OTHER, Storage, node, version, &HDNodeType_fields),
     PB_FIELD2(  3, STRING  , OPTIONAL, STATIC  , OTHER, Storage, mnemonic, node, 0),
@@ -16,6 +16,7 @@ const pb_field_t Storage_fields[11] = {
     PB_FIELD2(  8, STRING  , OPTIONAL, STATIC  , OTHER, Storage, label, language, 0),
     PB_FIELD2(  9, BOOL    , OPTIONAL, STATIC  , OTHER, Storage, imported, label, 0),
     PB_FIELD2( 10, BYTES   , OPTIONAL, STATIC  , OTHER, Storage, homescreen, imported, 0),
+    PB_FIELD2( 11, MESSAGE , REPEATED, STATIC  , OTHER, Storage, label_list, homescreen, &AccountLabelsType_fields),
     PB_LAST_FIELD
 };
 
@@ -29,7 +30,7 @@ const pb_field_t Storage_fields[11] = {
  * numbers or field sizes that are larger than what can fit in 8 or 16 bit
  * field descriptors.
  */
-STATIC_ASSERT((pb_membersize(Storage, node) < 65536), YOU_MUST_DEFINE_PB_FIELD_32BIT_FOR_MESSAGES_Storage)
+STATIC_ASSERT((pb_membersize(Storage, node) < 65536 && pb_membersize(Storage, label_list[0]) < 65536), YOU_MUST_DEFINE_PB_FIELD_32BIT_FOR_MESSAGES_Storage)
 #endif
 
 #if !defined(PB_FIELD_16BIT) && !defined(PB_FIELD_32BIT)
