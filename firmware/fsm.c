@@ -931,12 +931,13 @@ void fsm_msgSetAccountLabel(SetAccountLabel *msg)
 
 	const char *str_index = fsm_msgStrIndex(msg->index);
 	char zhstr_index[16];
+	memset(zhstr_index, 0, sizeof(zhstr_index));
 	strncpy(zhstr_index, str_index, (strlen(str_index) - 2));
 
 	if(msg->has_label) {
 		switch(storage_getLang()) {
 			case CHINESE :
-				layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, "设置第", zhstr_index, "账户名称为#:#", msg->label);
+				layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, "设置第", zhstr_index, "个账户名称为#:#", msg->label);
 				break;
 			default :
 				layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you want to set ", str_index, "account label to", msg->label, "?", NULL);
