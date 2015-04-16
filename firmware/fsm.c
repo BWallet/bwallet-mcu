@@ -209,7 +209,7 @@ void fsm_msgChangePin(ChangePin *msg)
 		} else {
 			switch (storage_getLang()) {
 				case CHINESE : 
-					layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, "设置#P##I##N#码#?#", NULL, NULL, NULL);
+					layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认", NULL, "设置新的#P##I##N#码#?#", NULL, NULL, NULL);
 					break;
 				default :
 					layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm", NULL, "Do you really want to", "set new PIN?", NULL, NULL, NULL, NULL);

@@ -194,7 +194,7 @@ bool protectChangePin(void)
 	char pin1[17], pin2[17];
 	switch (storage_getLang()) {
 		case CHINESE :
-			pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, "请输入#P##I##N#码#:#");
+			pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, "请输入新的#P##I##N#码#:#");
 			break;
 		default	:
 			pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, "Please enter new PIN:");
