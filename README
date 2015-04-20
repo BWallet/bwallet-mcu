@@ -3,14 +3,11 @@ BWalletFirmware
 本项目基于https://github.com/trezor/trezor-mcu/
 
 构建说明: 
-
-release v1.3.0
-https://github.com/BWallet/bwallet-mcu/releases/tag/1.3.0
-对应：
 bootloader v1.3.2 
-hash：116c4823a6ac2c6e2fc068a27c167b5a108b912504b3c2e73ebe4270f44d1ecd
-firmware v1.3.0 
-hash:015b66657d928efca5e757d5322bac703be7ad915392f75e3e0af6c6f8488190
+https://github.com/BWallet/bwallet-mcu/releases/tag/1.3.0
+
+firmware v1.3.1 
+hash: 9cfb55729c9a46e072d1ce61218f32e48c0ac84893168e5f67a9b59684f52bb9
 
 系统环境：ubuntu:14.04 32bit
 
@@ -18,25 +15,26 @@ hash:015b66657d928efca5e757d5322bac703be7ad915392f75e3e0af6c6f8488190
 $apt-get update
 $sudo apt-get install -y build-essential  git  python python-pip libssl-dev
 $pip install ecdsa
-$wget https://launchpadlibrarian.net/186124160/gcc-arm-none-eabi-4_8-2014q3-20140805-linux.tar.bz2
-$tar vxf gcc-arm-none-eabi-4_8-2014q3-20140805-linux.tar.bz2
-$export PATH=$PATH:$(HOME)/gcc-arm-none-eabi-4_8-2014q3/bin
+$wget https://launchpadlibrarian.net/200701245/gcc-arm-none-eabi-4_9-2015q1-20150306-linux.tar.bz2
+$tar vxf gcc-arm-none-eabi-4_9-2015q1-20150306-linux.tar.bz2
+$export PATH=$PATH:$(HOME)/gcc-arm-none-eabi-4_9-2015q1/bin
 终端上能运行arm-none-eabi-gcc 表示编译环境构建完成
 
 2、下载stm32所用的libopencm3 依赖库及BWallet项目到同一目录
-$git clone https://github.com/BWallet/libopencm3.git
-$git clone https://github.com/BWallet/bwallet-mcu.git
+$git clone https://github.com/libopencm3/libopencm3.git
 
 3、编译库
 $cd  libopencm3
+$git checkout 7dbb93c78411b37bec64b5ca5be55076b0ab1b15
 $make
 
-4、编译bootloader、firmware
+4、编译firmware
+git clone https://github.com/BWallet/bwallet-mcu.git
 $cd bwallet-mcu/
+$git submodule update --recursive --init
+$git checkout 1.3.1
+$git submodule update
 $make
-$cd  bootloader 
-$make
-得到bootloader.bin二进制文件
 $cd bwallet-mcu/firmware
 $make
 得到bwallet.bin 二进制文件
@@ -46,25 +44,8 @@ $make release
 其中fingerprint：xxxxxxx为编译firmware二进制文件的hash值
 得到一个bwallet-x.x.x.bin.hex的十六进制文件，此文件可用后面的刷新固件程序将它烧进BWallet里面
 
-7、验证firmware程序
+6、验证firmware程序
 1）用bwallet-tools刷写固件。https://github.com/BWallet/bwallet-tools。
 2）可以在校验固件的步骤，对比编译出来的fingerprint值是否与升级后的一致，也可对比相关值与官方更新所得到的值是否一致。
 
-8、验证bootloader
-   bootloader验证说明：由于bootloader在代码中指定的范围是32KB（32768byte），因此代码中整个验证是对整个bootloader区域进行hash后再次进行hash的所得值，因此bootloader的验证需要用官方的工具才能验证完成，其步骤如下：
-1）进入verify目录 
-   $make 
-   得到verify的工具，此工具也可验证firmware的hash值，具体使用说明请运行$./verify --help
-2）运行工具进行验证
-   $./verify  -b  ../bootloader/bootloader.bin
-   然后得到hash值。可与官方所提供的hash值提供对比，是否一致。
-
-注意：验证bootloader与firmware的hash值时，编译的版本一定要与所验证的版本一致。
-
-
-
-
-
-
-
-
+注意：验证firmware的hash值时，编译的版本一定要与所验证的版本一致。
