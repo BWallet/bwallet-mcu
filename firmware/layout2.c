@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "layout2.h"
 #include "storage.h"
@@ -134,7 +135,7 @@ void layoutConfirmOutput(const CoinType *coin, const TxOutputType *out)
 	const char *str_out = str_amount(out->amount, coin->has_coin_shortcut ? coin->coin_shortcut : NULL, buf_out, sizeof(buf_out));
 	switch (storage_getLang()) {
 		case CHINESE :
-			layoutZhDialogSwipe(DIALOG_ICON_QUESTION,
+			layoutZhDialog(DIALOG_ICON_QUESTION,
 					"取消",
 					"确认",
 					NULL,
@@ -145,7 +146,7 @@ void layoutConfirmOutput(const CoinType *coin, const TxOutputType *out)
 					);
 			break;
 		default	:
-			layoutDialogSwipe(DIALOG_ICON_QUESTION,
+			layoutDialog(DIALOG_ICON_QUESTION,
 					"Cancel",
 					"Confirm",
 					NULL,
@@ -166,7 +167,7 @@ void layoutConfirmTx(const CoinType *coin, uint64_t amount_out, uint64_t amount_
 	const char *str_fee = str_amount(amount_fee, coin->has_coin_shortcut ? coin->coin_shortcut : NULL, buf_fee, sizeof(buf_fee));
 	switch (storage_getLang()) {
 		case CHINESE :
-			layoutZhDialogSwipe(DIALOG_ICON_QUESTION,
+			layoutZhDialog(DIALOG_ICON_QUESTION,
 					"取消",
 					"确认",
 					NULL,
@@ -177,7 +178,7 @@ void layoutConfirmTx(const CoinType *coin, uint64_t amount_out, uint64_t amount_
 					);
 			break;
 		default :
-			layoutDialogSwipe(DIALOG_ICON_QUESTION,
+			layoutDialog(DIALOG_ICON_QUESTION,
 					"Cancel",
 					"Confirm",
 					NULL,
@@ -199,7 +200,7 @@ void layoutFeeOverThreshold(const CoinType *coin, uint64_t fee, uint32_t kb)
 	const char *str_out = str_amount(fee, coin->has_coin_shortcut ? coin->coin_shortcut : NULL, buf_out, sizeof(buf_out));
 	switch (storage_getLang()) {
 		case CHINESE :
-			layoutZhDialogSwipe(DIALOG_ICON_QUESTION,
+			layoutZhDialog(DIALOG_ICON_QUESTION,
 					"取消",
 					"确认",
 					NULL,
@@ -210,7 +211,7 @@ void layoutFeeOverThreshold(const CoinType *coin, uint64_t fee, uint32_t kb)
 					);
 			break;
 		default :
-			layoutDialogSwipe(DIALOG_ICON_QUESTION,
+			layoutDialog(DIALOG_ICON_QUESTION,
 					"Cancel",
 					"Confirm",
 					NULL,
@@ -385,24 +386,55 @@ void layoutAddress(const char *address)
 
 void layoutSignIdentity(const IdentityType *identity, const char *challenge)
 {
+	char row_proto[8 + 8 + 1];
+	char row_hostport[64 + 6 + 1];
+	char row_user[64 + 8 + 1];
+
+	if (identity->has_proto && identity->proto[0]) {
+		strlcpy(row_proto, identity->proto, sizeof(row_proto));
+		char *p = row_proto;
+		while (*p) { *p = toupper((int)*p); p++; }
+		strlcat(row_proto, " login:", sizeof(row_proto));
+	} else {
+		strlcpy(row_proto, "Login:", sizeof(row_proto));
+	}
+
+	if (identity->has_host && identity->host[0]) {
+		strlcpy(row_hostport, identity->host, sizeof(row_hostport));
+		if (identity->has_port && identity->port[0]) {
+			strlcat(row_hostport, ":", sizeof(row_hostport));
+			strlcat(row_hostport, identity->user, sizeof(row_hostport));
+		}
+	} else {
+		row_hostport[0] = 0;
+	}
+
+	if (identity->has_user && identity->user[0]) {
+		strlcpy(row_user, "user: ", sizeof(row_user));
+		strlcat(row_user, identity->user, sizeof(row_user));
+	} else {
+		row_user[0] = 0;
+	}
+
 	switch (storage_getLang()) {
 		case CHINESE :
 			layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认",
-					"身份签名?",
-					identity->has_proto ? identity->proto : NULL,
-					identity->has_user ? identity->user : NULL,
-					identity->has_host ? identity->host : NULL,
+					"用这个身份签名?",
+					row_proto[0] ? row_proto : NULL,
+					row_hostport[0] ? row_hostport : NULL,
+					row_user[0] ? row_user : NULL,
 					challenge);
 			break;
 		default :
 			layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm",
-					"Sign identity?",
-					identity->has_proto ? identity->proto : NULL,
-					identity->has_user ? identity->user : NULL,
-					identity->has_host ? identity->host : NULL,
+					"Sign using this identity?",
+					row_proto[0] ? row_proto : NULL,
+					row_hostport[0] ? row_hostport : NULL,
+					row_user[0] ? row_user : NULL,
 					challenge,
 					NULL,
 					NULL);
 	}
 }
+
 
