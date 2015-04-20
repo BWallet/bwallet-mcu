@@ -1000,13 +1000,22 @@ void fsm_msgGetAccountLabels(GetAccountLabels *msg)
 		fsm_sendFailure(FailureType_Failure_Other, "Invalid coin name");
 		return ;
 	}
+	
+	const uint32_t find_index = storage_findAccountLabel(msg->index, coin_index);
+
 	RESP_INIT(AccountLabels);
 	resp->has_coin_name = true;
 	strlcpy(resp->coin_name, msg->coin_name, sizeof(msg->coin_name));
 
-	storage_getAccountLabels(msg->all, msg->index, resp, coin_index);
+	if(msg->all)
+		resp->labels_count = storage_getAccountCount(coin_index);		
+	else if(find_index > LABEL_COUNT)
+		resp->labels_count = 0;
+	else
+		resp->labels_count = 1;
 
-	resp->labels_count = storage_getAccountCount(coin_index);
+	if(resp->labels_count)
+		storage_getAccountLabels(msg->all, find_index, resp, coin_index);
 
 	msg_write(MessageType_MessageType_AccountLabels, resp);
 	layoutHome();
