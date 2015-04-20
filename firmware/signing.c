@@ -280,7 +280,14 @@ void signing_txack(TransactionType *tx)
 
 	static int update_ctr = 0;
 	if (update_ctr++ == 50) {
-		layoutProgress("Signing transaction", progress);
+		switch (storage_getLang()) {
+			case CHINESE :
+				layoutProgressSwipe("交易签名#.##.##.#", progress);
+				break;
+			default :
+				layoutProgressSwipe("Signing transaction", progress);
+				break;
+		}
 		update_ctr = 0;
 	}
 
@@ -409,7 +416,14 @@ void signing_txack(TransactionType *tx)
 			spending += tx->outputs[0].amount;
 			co = compile_output(coin, root, tx->outputs, &bin_output, !is_change);
 			if (!is_change) {
-				layoutProgress("Signing transaction", progress);
+				switch (storage_getLang()) {
+					case CHINESE :
+						layoutProgressSwipe("交易签名#.##.##.#", progress);
+						break;
+					default :
+						layoutProgressSwipe("Signing transaction", progress);
+						break;
+				}
 			}
 			if (co < 0) {
 				fsm_sendFailure(FailureType_Failure_Other, "Signing cancelled by user");
@@ -452,7 +466,14 @@ void signing_txack(TransactionType *tx)
 
 				// Everything was checked, now phase 2 begins and the transaction is signed.
 				progress_meta_step = progress_step / (inputs_count + outputs_count);
-				layoutProgress("Signing transaction", progress);
+				switch (storage_getLang()) {
+					case CHINESE :
+						layoutProgressSwipe("交易签名#.##.##.#", progress);
+						break;
+					default :
+						layoutProgressSwipe("Signing transaction", progress);
+						break;
+				}
 				idx1 = 0;
 				idx2 = 0;
 				send_req_4_input();
