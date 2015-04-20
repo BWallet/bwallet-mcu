@@ -62,7 +62,7 @@ uint32_t storage_findAccountLabel(const uint32_t index, const uint32_t coin_inde
 bool storage_isPinCorrect(const char *pin);
 bool storage_hasPin(void);
 void storage_setPin(const char *pin);
-void session_cachePin(const char *pin);
+void session_cachePin(void);
 bool session_isPinCached(void);
 void storage_resetPinFails(void);
 void storage_increasePinFails(void);
