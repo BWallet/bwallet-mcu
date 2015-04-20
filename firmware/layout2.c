@@ -383,3 +383,26 @@ void layoutAddress(const char *address)
 	oledRefresh();
 }
 
+void layoutSignIdentity(const IdentityType *identity, const char *challenge)
+{
+	switch (storage_getLang()) {
+		case CHINESE :
+			layoutZhDialogSwipe(DIALOG_ICON_QUESTION, "取消", "确认",
+					"身份签名?",
+					identity->has_proto ? identity->proto : NULL,
+					identity->has_user ? identity->user : NULL,
+					identity->has_host ? identity->host : NULL,
+					challenge);
+			break;
+		default :
+			layoutDialogSwipe(DIALOG_ICON_QUESTION, "Cancel", "Confirm",
+					"Sign identity?",
+					identity->has_proto ? identity->proto : NULL,
+					identity->has_user ? identity->user : NULL,
+					identity->has_host ? identity->host : NULL,
+					challenge,
+					NULL,
+					NULL);
+	}
+}
+

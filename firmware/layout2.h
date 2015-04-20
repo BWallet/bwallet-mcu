@@ -36,6 +36,7 @@ void layoutSignMessage(const uint8_t *msg, uint32_t len);
 void layoutVerifyMessage(const uint8_t *msg, uint32_t len);
 void layoutCipherKeyValue(bool encrypt, const char *key);
 void layoutAddress(const char *address);
+void layoutSignIdentity(const IdentityType *identity, const char *challenge);
 void layoutEncryptMessage(const uint8_t *msg, uint32_t len, bool signing);
 void layoutDecryptMessage(const uint8_t *msg, uint32_t len, const char *address);
 
