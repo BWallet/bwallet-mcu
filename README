@@ -6,8 +6,8 @@ BWalletFirmware
 bootloader v1.3.2 
 https://github.com/BWallet/bwallet-mcu/releases/tag/1.3.0
 
-firmware v1.3.1 
-hash: 9cfb55729c9a46e072d1ce61218f32e48c0ac84893168e5f67a9b59684f52bb9
+firmware v1.3.2
+hash: e3305fad63721c1061672da92d72de974b4eac15368fdab712f6f88cf5963374
 
 系统环境：ubuntu:14.04 32bit
 
@@ -32,7 +32,7 @@ $make
 git clone https://github.com/BWallet/bwallet-mcu.git
 $cd bwallet-mcu/
 $git submodule update --recursive --init
-$git checkout 1.3.1
+$git checkout 1.3.2
 $git submodule update
 $make
 $cd bwallet-mcu/firmware
