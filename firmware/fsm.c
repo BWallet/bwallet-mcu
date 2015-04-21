@@ -116,7 +116,7 @@ void fsm_msgInitialize(Initialize *msg)
 	(void)msg;
 	recovery_abort();
 	signing_abort();
-	session_clear();
+	session_clear(false);
 	fsm_msgGetFeatures(0);
 }
 
@@ -490,7 +490,7 @@ void fsm_msgCipherKeyValue(CipherKeyValue *msg)
 void fsm_msgClearSession(ClearSession *msg)
 {
 	(void)msg;
-	session_clear();
+	session_clear(true);
 	fsm_sendSuccess("Session cleared");
 }
 
