@@ -138,8 +138,8 @@ void reset_entropy(const uint8_t *ext_entropy, uint32_t len)
 				if (pass == 1) {
 					switch (storage_getLang()) {
 						case CHINESE :
-							break;
 							layoutZhDialogSwipe(DIALOG_ICON_INFO, NULL, "完成", NULL, "请检查种子", (word_pos < 10 ? zhunitdesc  : zhdesc), NULL, current_word);
+							break;
 						default :
 							layoutDialogSwipe(DIALOG_ICON_INFO, NULL, "Finish", NULL, "Please check the seed", NULL, (word_pos < 10 ? desc + 1 : desc), NULL, current_word, NULL);
 							break;
