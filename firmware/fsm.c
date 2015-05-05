@@ -1017,9 +1017,11 @@ void fsm_msgSetAccountLabel(SetAccountLabel *msg)
 		return ;
 	}    
 
+	const uint32_t labels_count_init = storage_getAccountCount(coin_index);
+	if(labels_count_init == 0xffffffff)
+		storage_labelInit();
 	const uint32_t labels_count = storage_getAccountCount(coin_index);
-	const uint32_t find_index = storage_findAccountLabel(msg->index, coin_index);
-	if((labels_count >= LABEL_COUNT) && (find_index > LABEL_COUNT)) {
+	if(labels_count >= LABEL_COUNT) {
 		fsm_sendFailure(FailureType_Failure_Other, "Label cannot be more than 32");
 		return ;
 	}
@@ -1071,6 +1073,7 @@ void fsm_msgSetAccountLabel(SetAccountLabel *msg)
 		return;
 	}
 
+	const uint32_t find_index = storage_findAccountLabel(msg->index, coin_index);
 	if(msg->has_label && msg->has_index) {
 		storage_setAccountLabel(msg->label, msg->index, coin_index, labels_count, find_index);
 	}
@@ -1096,6 +1099,7 @@ void fsm_msgGetAccountLabels(GetAccountLabels *msg)
 		return ;
 	}
 	
+
 	const uint32_t find_index = storage_findAccountLabel(msg->index, coin_index);
 
 	RESP_INIT(AccountLabels);

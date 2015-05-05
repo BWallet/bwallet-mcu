@@ -202,6 +202,20 @@ void storage_loadDevice(LoadDevice *msg)
 	}
 }
 
+void storage_labelInit(void)
+{
+	int i, j;
+	for(i = 0; i < COINS_COUNT; i++){
+		storage.label_list[i].count = 0;
+		for(j = 0; j < LABEL_COUNT; j++) {
+			storage.label_list[i].labels[j].index = 0;
+			memset(storage.label_list[i].labels[j].label, 0, 
+				   sizeof(storage.label_list[i].labels[j].label));
+		}
+	}
+	storage_commit();
+}
+
 uint32_t storage_findAccountLabel(const uint32_t index, const uint32_t coin_index)
 {
 	uint32_t find_index, count;

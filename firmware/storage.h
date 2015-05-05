@@ -53,6 +53,7 @@ void storage_setHomescreen(const uint8_t *data, uint32_t size);
 void session_cachePassphrase(const char *passphrase);
 bool session_isPassphraseCached(void);
 
+void storage_labelInit(void);
 void storage_getAccountLabels(bool all, const uint32_t index, AccountLabels *coin_labels, const uint32_t coin_index);
 void storage_setAccountLabel(const char *label, const uint32_t index, const uint32_t coin_index, const uint32_t count, const uint32_t find_index);
 void storage_delAccountLabel(const uint32_t coin_index, const uint32_t count, const uint32_t find_index);

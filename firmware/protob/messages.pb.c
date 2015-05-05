@@ -20,7 +20,7 @@ const char SetAccountLabel_coin_name_default[17] = "Bitcoin";
 
 
 const pb_field_t Initialize_fields[2] = {
-    PB_FIELD2(  1, STRING  , OPTIONAL, CALLBACK, FIRST, Initialize, language, language, 0),
+    PB_FIELD2(  1, STRING  , OPTIONAL, STATIC  , FIRST, Initialize, language, language, 0),
     PB_LAST_FIELD
 };
 

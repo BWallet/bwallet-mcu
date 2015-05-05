@@ -436,7 +436,8 @@ typedef struct _GetPublicKey {
 } GetPublicKey;
 
 typedef struct _Initialize {
-    pb_callback_t language;
+    bool has_language;
+    char language[17];
 } Initialize;
 
 typedef struct _LoadDevice {
@@ -669,7 +670,7 @@ extern const char GetAccountLabels_coin_name_default[17];
 extern const char SetAccountLabel_coin_name_default[17];
 
 /* Initializer values for message structs */
-#define Initialize_init_default                  {{{NULL}, NULL}}
+#define Initialize_init_default                  {false, ""}
 #define GetFeatures_init_default                 {0}
 #define Features_init_default                    {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default, CoinType_init_default}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0, false, 0, false, 0}
 #define ClearSession_init_default                {0}
@@ -727,7 +728,7 @@ extern const char SetAccountLabel_coin_name_default[17];
 #define DebugLinkState_init_default              {false, {0, {0}}, false, "", false, "", false, "", false, HDNodeType_init_default, false, 0, false, "", false, {0, {0}}, false, "", false, 0}
 #define DebugLinkStop_init_default               {0}
 #define DebugLinkLog_init_default                {false, 0, false, "", false, ""}
-#define Initialize_init_zero                     {{{NULL}, NULL}}
+#define Initialize_init_zero                     {false, ""}
 #define GetFeatures_init_zero                    {0}
 #define Features_init_zero                       {false, "", false, 0, false, 0, false, 0, false, 0, false, "", false, 0, false, 0, false, "", false, "", 0, {CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero, CoinType_init_zero}, false, 0, false, {0, {0}}, false, {0, {0}}, false, 0, false, 0, false, 0}
 #define ClearSession_init_zero                   {0}
@@ -989,6 +990,7 @@ extern const pb_field_t DebugLinkStop_fields[1];
 extern const pb_field_t DebugLinkLog_fields[4];
 
 /* Maximum encoded size of messages (where known) */
+#define Initialize_size                          19
 #define GetFeatures_size                         0
 #define Features_size                            (242 + 6*CoinType_size)
 #define ClearSession_size                        0

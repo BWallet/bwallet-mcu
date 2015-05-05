@@ -6,6 +6,8 @@ Features.coins				max_count:6
 Features.revision			max_size:20
 Features.bootloader_hash		max_size:32
 
+Initialize.language			max_size:17
+
 ApplySettings.language			max_size:17
 ApplySettings.label			max_size:33
 ApplySettings.homescreen		max_size:1024
