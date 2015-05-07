@@ -1,4 +1,4 @@
-APPVER = 1.3.3
+APPVER = 1.3.4
 
 NAME  = bwallet
 

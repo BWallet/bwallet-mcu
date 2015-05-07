@@ -3,11 +3,11 @@ BWalletFirmware
 本项目基于https://github.com/trezor/trezor-mcu/
 
 构建说明: 
-bootloader v1.3.2 
+bootloader v1.3.2
 https://github.com/BWallet/bwallet-mcu/releases/tag/1.3.0
 
-firmware v1.3.3
-hash: a8100efdb655a886b9f177001e20d81f8adf4eda85e40311cab6ffb2e2aec99b
+firmware v1.3.4
+hash: 148c448aa2f158554ed17ec4860e0c0b9d8e0da2de95cd283cd3e72e9df9933f
 
 系统环境：ubuntu:14.04 32bit
 
@@ -15,9 +15,9 @@ hash: a8100efdb655a886b9f177001e20d81f8adf4eda85e40311cab6ffb2e2aec99b
 $apt-get update
 $sudo apt-get install -y build-essential  git  python python-pip libssl-dev
 $pip install ecdsa
-$wget https://launchpadlibrarian.net/200701245/gcc-arm-none-eabi-4_9-2015q1-20150306-linux.tar.bz2
-$tar vxf gcc-arm-none-eabi-4_9-2015q1-20150306-linux.tar.bz2
-$export PATH=$PATH:$(HOME)/gcc-arm-none-eabi-4_9-2015q1/bin
+$wget wget https://launchpadlibrarian.net/186124160/gcc-arm-none-eabi-4_8-2014q3-20140805-linux.tar.bz2 
+$tar vxf gcc-arm-none-eabi-4_8-2014q3-20140805-linux.tar.bz2
+$export PATH=$PATH:$(HOME)/gcc-arm-none-eabi-4_8-2014q3/bin
 终端上能运行arm-none-eabi-gcc 表示编译环境构建完成
 
 2、下载stm32所用的libopencm3 依赖库及BWallet项目到同一目录
@@ -32,7 +32,7 @@ $make
 git clone https://github.com/BWallet/bwallet-mcu.git
 $cd bwallet-mcu/
 $git submodule update --recursive --init
-$git checkout 1.3.3
+$git checkout 1.3.4
 $git submodule update
 $make
 $cd bwallet-mcu/firmware
