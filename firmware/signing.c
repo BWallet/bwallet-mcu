@@ -243,7 +243,7 @@ void signing_init(uint32_t _inputs_count, uint32_t _outputs_count, const CoinTyp
 	memset(&resp, 0, sizeof(TxRequest));
 
 	signing = true;
-	progress = 1;
+	progress = 0;
 	// we step by 500/inputs_count per input in phase1 and phase2
 	// this means 50 % per phase.
 	progress_step = (500 << PROGRESS_PRECISION) / inputs_count;
@@ -279,7 +279,7 @@ void signing_txack(TransactionType *tx)
 	}
 
 	static int update_ctr = 0;
-	if (update_ctr++ == 50) {
+	if (update_ctr++ == 20) {
 		switch (storage_getLang()) {
 			case CHINESE :
 				layoutProgressSwipe("交易签名#.##.##.#", progress);
@@ -455,6 +455,14 @@ void signing_txack(TransactionType *tx)
 						layoutHome();
 						return;
 					}
+					switch (storage_getLang()) {
+						case CHINESE :
+							layoutProgressSwipe("交易签名#.##.##.#", progress);
+							break;
+						default :
+							layoutProgressSwipe("Signing transaction", progress);
+							break;
+					}
 				}
 				// last confirmation
 				layoutConfirmTx(coin, to_spend - change_spend, fee);
@@ -481,16 +489,16 @@ void signing_txack(TransactionType *tx)
 			return;
 		}
 		case STAGE_REQUEST_4_INPUT:
-		progress = 500 + ((idx1 * progress_step + idx2 * progress_meta_step) >> PROGRESS_PRECISION);
-		if (idx2 == 0) {
-			tx_init(&ti, inputs_count, outputs_count, version, lock_time, true);
-			sha256_Init(&tc);
-			sha256_Update(&tc, (const uint8_t *)&inputs_count, sizeof(inputs_count));
-			sha256_Update(&tc, (const uint8_t *)&outputs_count, sizeof(outputs_count));
-			sha256_Update(&tc, (const uint8_t *)&version, sizeof(version));
-			sha256_Update(&tc, (const uint8_t *)&lock_time, sizeof(lock_time));
-			memset(privkey, 0, 32);
-			memset(pubkey, 0, 33);
+			progress = 500 + ((idx1 * progress_step + idx2 * progress_meta_step) >> PROGRESS_PRECISION);
+			if (idx2 == 0) {
+				tx_init(&ti, inputs_count, outputs_count, version, lock_time, true);
+				sha256_Init(&tc);
+				sha256_Update(&tc, (const uint8_t *)&inputs_count, sizeof(inputs_count));
+				sha256_Update(&tc, (const uint8_t *)&outputs_count, sizeof(outputs_count));
+				sha256_Update(&tc, (const uint8_t *)&version, sizeof(version));
+				sha256_Update(&tc, (const uint8_t *)&lock_time, sizeof(lock_time));
+				memset(privkey, 0, 32);
+				memset(pubkey, 0, 33);
 			}
 			sha256_Update(&tc, (const uint8_t *)tx->inputs, sizeof(TxInputType));
 			if (idx2 == idx1) {
@@ -596,6 +604,15 @@ void signing_txack(TransactionType *tx)
 					input.script_sig.size = serialize_script_sig(resp.serialized.signature.bytes, resp.serialized.signature.size, pubkey, 33, input.script_sig.bytes);
 				}
 				resp.serialized.serialized_tx.size = tx_serialize_input(&to, &input, resp.serialized.serialized_tx.bytes);
+				switch (storage_getLang()) {
+					case CHINESE :
+						layoutProgressSwipe("交易签名#.##.##.#", progress);
+						break;
+					default :
+						layoutProgressSwipe("Signing transaction", progress);
+						break;
+				}
+				update_ctr = 0;
 				if (idx1 < inputs_count - 1) {
 					idx1++;
 					idx2 = 0;

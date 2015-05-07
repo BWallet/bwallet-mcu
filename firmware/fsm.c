@@ -779,7 +779,7 @@ void fsm_msgSignIdentity(SignIdentity *msg)
 	const HDNode *node = fsm_getDerivedNode(address_n, 5);
 	if (!node) return;
 
-	uint8_t message[128];
+	uint8_t message[256 + 256];
 	memcpy(message, msg->challenge_hidden.bytes, msg->challenge_hidden.size);
 	const int len = strlen(msg->challenge_visual);
 	memcpy(message + msg->challenge_hidden.size, msg->challenge_visual, len);
@@ -1099,6 +1099,10 @@ void fsm_msgGetAccountLabels(GetAccountLabels *msg)
 		return ;
 	}
 	
+
+	const uint32_t labels_count_init = storage_getAccountCount(coin_index);
+	if(labels_count_init == 0xffffffff)
+		storage_labelInit();
 
 	const uint32_t find_index = storage_findAccountLabel(msg->index, coin_index);
 
